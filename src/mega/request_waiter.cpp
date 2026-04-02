@@ -28,6 +28,33 @@ namespace
     return value;
 }
 
+[[nodiscard]] std::string make_request_error_message(const mega_integration::RequestResult& result)
+{
+    std::ostringstream stream;
+    stream << "MEGA request";
+
+    if(result.request != nullptr)
+    {
+        stream << " type " << result.request->getType();
+    }
+
+    stream << " failed with code " << result.error_code;
+
+    if(!result.error_string.empty())
+    {
+        stream << ": " << result.error_string;
+    }
+
+    if(result.temporary_error && result.temporary_error.value())
+    {
+        stream << " (last temporary error: "
+               << copy_error_string(*result.temporary_error.value())
+               << ")";
+    }
+
+    return stream.str();
+}
+
 } // namespace
 
 namespace mega_integration
@@ -67,7 +94,7 @@ std::chrono::milliseconds RequestTimeoutError::timeout() const noexcept
 }
 
 MegaRequestError::MegaRequestError(RequestResult result)
-    : std::runtime_error(result.error_string)
+    : std::runtime_error(make_request_error_message(result))
     , result_(std::move(result))
 {
 }

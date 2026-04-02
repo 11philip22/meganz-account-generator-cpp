@@ -50,6 +50,19 @@ Additional prerequisite for mode 1:
 
 - `cargo` must be installed and available on `PATH`
 
+## Build Prerequisites
+
+You need:
+
+- CMake 3.20 or newer
+- a C compiler with C11 support
+- a C++ compiler with C++20 support
+- a local `meganz/sdk` checkout passed through `SDK_ROOT`
+- one supported GuerrillaMail dependency mode
+
+Depending on how your local `meganz/sdk` checkout is configured, you may also need to provide
+explicit discovery hints for upstream dependencies such as ICU and Crypto++.
+
 ## Supported Build Shape
 
 The project integrates:
@@ -128,6 +141,25 @@ Run it with:
 
 The exact path can differ depending on the generator.
 
+## Architecture
+
+The current implementation is split into these layers:
+
+- `include/meganz_account_generator/`
+  - stable public headers for ordinary C++ callers
+- `src/public/`
+  - translation layer between the public API and internal orchestration
+- `src/core/`
+  - synchronous account-generation flow, confirmation-link parsing, and retry policy
+- `src/mega/`
+  - synchronous request bridge over the callback-based MEGA SDK
+- `src/mail/`
+  - RAII wrapper over the blocking `guerrillamail-client-c` API
+- `src/cli/`
+  - thin command-line frontend over the public library API
+- `tests/`
+  - deterministic seam-level tests plus an opt-in live end-to-end harness
+
 ## Public C++ API
 
 Public headers live under:
@@ -205,6 +237,17 @@ The CLI is a thin frontend over the public library API. It does not expose inter
 or direct SDK calls. On success it prints the created email and display name, but not the
 user-supplied password.
 
+## Runtime Expectations
+
+A real account-generation run requires:
+
+- network access to both MEGA and GuerrillaMail
+- a valid MEGA app key
+- a password supplied by the caller or CLI user
+- enough time for GuerrillaMail delivery and MEGA confirmation processing
+
+If you provide a proxy, the library uses it for both the MEGA SDK and GuerrillaMail wrapper.
+
 ## End-to-End Verification
 
 The repository includes an opt-in CTest target, `account_generator_e2e_test`, that exercises
@@ -262,9 +305,30 @@ Not verified in this pass:
 - a live MEGA plus GuerrillaMail end-to-end signup run
 - any scenario that requires real network access or externally supplied E2E credentials
 
+## Troubleshooting Local Runs
+
+Common local issues:
+
+- configure fails before generation
+  - confirm `SDK_ROOT` points at a real `meganz/sdk` checkout
+  - confirm exactly one GuerrillaMail setup mode is configured
+- `GUERRILLAMAIL_CLIENT_C_ROOT` mode fails during configure or build
+  - make sure `cargo` is installed and available on `PATH`
+- MEGA SDK dependency discovery fails
+  - pass explicit ICU and Crypto++ discovery hints for your local machine instead of relying on
+    implicit system lookup
+- `account_generator_e2e_test` is skipped
+  - set `MEGANZ_ACCOUNT_GENERATOR_CPP_E2E_APP_KEY` and
+    `MEGANZ_ACCOUNT_GENERATOR_CPP_E2E_PASSWORD`
+- live runs time out while waiting for confirmation mail
+  - verify outbound network access
+  - verify the MEGA app key is valid
+  - verify any configured proxy is reachable and correct
+  - expect occasional delivery delays from external services
+
 ## Source Layout
 
-The initial layout is intentionally simple:
+The repository is organized by layer:
 
 - `cmake/`
   - local CMake helpers
@@ -274,6 +338,10 @@ The initial layout is intentionally simple:
   - project sources
 - `src/core/`
   - high-level signup orchestration
+- `src/mail/`
+  - GuerrillaMail wrapper layer
+- `src/mega/`
+  - MEGA SDK integration layer
 - `src/cli/`
   - thin command-line frontend
 - `src/smoke/`

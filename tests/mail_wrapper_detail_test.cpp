@@ -69,6 +69,24 @@ void test_message_conversion()
     require(summary.mail_timestamp == "1712055262", "timestamp should be copied");
 }
 
+void test_message_conversion_handles_null_fields()
+{
+    const gm_message_t message{
+        .mail_id = {},
+        .mail_from = {},
+        .mail_subject = {},
+        .mail_excerpt = {},
+        .mail_timestamp = {},
+    };
+
+    const auto summary = mail::detail::to_message_summary(message);
+    require(summary.mail_id.empty(), "null message ids should map to empty strings");
+    require(summary.mail_from.empty(), "null senders should map to empty strings");
+    require(summary.mail_subject.empty(), "null subjects should map to empty strings");
+    require(summary.mail_excerpt.empty(), "null excerpts should map to empty strings");
+    require(summary.mail_timestamp.empty(), "null timestamps should map to empty strings");
+}
+
 void test_email_details_conversion()
 {
     std::string mail_id = "mail-456";
@@ -88,7 +106,11 @@ void test_email_details_conversion()
     };
 
     const auto detailed = mail::detail::to_email_details(with_attachment);
+    require(detailed.mail_id == "mail-456", "detail mail id should be copied");
+    require(detailed.mail_from == "mega@example.com", "detail sender should be copied");
+    require(detailed.mail_subject == "Welcome", "detail subject should be copied");
     require(detailed.mail_body == "body", "body should be copied");
+    require(detailed.mail_timestamp == "1712055300", "detail timestamp should be copied");
     require(
         detailed.attachment_count == std::optional<std::uint32_t>{2},
         "attachment count should be preserved when present"
@@ -115,6 +137,7 @@ int main()
 {
     test_status_translation();
     test_message_conversion();
+    test_message_conversion_handles_null_fields();
     test_email_details_conversion();
     return 0;
 }

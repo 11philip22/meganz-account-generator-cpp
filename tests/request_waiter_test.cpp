@@ -137,11 +137,77 @@ void test_finish_copies_request_and_temporary_error()
     );
 }
 
+void test_execute_request_captures_error_result()
+{
+    using namespace std::chrono_literals;
+
+    FakeRequest request(mega::MegaRequest::TYPE_CONFIRM_ACCOUNT);
+    FakeError temporary_error(mega::MegaError::API_EAGAIN, "retry");
+    FakeError final_error(mega::MegaError::API_EACCESS, "access denied");
+
+    auto result = mega_integration::execute_request(10ms, [&](auto* waiter)
+    {
+        waiter->onRequestTemporaryError(nullptr, nullptr, &temporary_error);
+        waiter->onRequestFinish(nullptr, &request, &final_error);
+    });
+
+    require(!result.ok(), "error result should report failure");
+    require(
+        result.request_type() == mega::MegaRequest::TYPE_CONFIRM_ACCOUNT,
+        "error result should still copy the request type"
+    );
+    require(
+        result.error_code == mega::MegaError::API_EACCESS,
+        "error result should preserve the final error code"
+    );
+    require(
+        result.error_string == "access denied",
+        "error result should preserve the final error string"
+    );
+
+    const mega_integration::MegaRequestError error(std::move(result));
+    require(error.error_code() == mega::MegaError::API_EACCESS, "wrapped error should preserve code");
+    const std::string expected_code_fragment =
+        "code " + std::to_string(mega::MegaError::API_EACCESS);
+    require(
+        std::string_view(error.what()).find(expected_code_fragment) != std::string_view::npos,
+        "wrapped error message should include the numeric error code"
+    );
+    require(
+        std::string_view(error.what()).find("last temporary error: retry") != std::string_view::npos,
+        "wrapped error message should include the latest temporary error"
+    );
+}
+
+void test_finish_without_error_object_reports_internal_error()
+{
+    using namespace std::chrono_literals;
+
+    const auto waiter = mega_integration::RequestWaiter::create();
+    waiter->retain_until_finish();
+
+    FakeRequest request(mega::MegaRequest::TYPE_LOGIN);
+    waiter->onRequestFinish(nullptr, &request, nullptr);
+
+    const auto result = waiter->wait(10ms);
+    require(!result.ok(), "missing MegaError should be treated as failure");
+    require(
+        result.error_code == mega::MegaError::API_EINTERNAL,
+        "missing MegaError should map to API_EINTERNAL"
+    );
+    require(
+        result.error_string == "request finished without MegaError",
+        "missing MegaError should report an actionable message"
+    );
+}
+
 } // namespace
 
 int main()
 {
     test_timeout_keeps_listener_alive_until_finish();
     test_finish_copies_request_and_temporary_error();
+    test_execute_request_captures_error_result();
+    test_finish_without_error_object_reports_internal_error();
     return 0;
 }

@@ -9,11 +9,18 @@ and this project intends to follow [Semantic Versioning](https://semver.org/spec
 
 ### Added
 
+- Added workspace-level VS Code CMake Tools settings for local configure/build with the repository-root
+  `meganz/sdk` and `guerrillamail-client-c` dependency layout.
 - Added public C++ headers under `include/meganz_account_generator/` with a stable synchronous
   `AccountGenerator` API.
 - Added a `meganz_account_generator_cpp` library target and `meganz_account_generator_cpp_cli`
   executable.
 - Added CLI help and public API usage validation alongside the existing deterministic test suite.
+- Added targeted hardening tests for:
+  - invalid confirmation-link cases
+  - case-insensitive polling heuristics
+  - null-field GuerrillaMail conversion behavior
+  - MEGA request-helper error propagation and missing-error handling
 - Added the initial CMake-based project skeleton for the C++ implementation.
 - Added explicit dependency wiring for `meganz/sdk` via `SDK_ROOT`.
 - Added explicit dependency wiring for `guerrillamail-client-c` via either:
@@ -56,6 +63,8 @@ and this project intends to follow [Semantic Versioning](https://semver.org/spec
 - Narrowed the public account-generator config so it no longer exposes the internal MEGA SDK
   client-type knob.
 - Stopped the CLI from echoing the user-supplied password on success.
+- Documented the concrete architecture, build prerequisites, runtime expectations, and local
+  troubleshooting paths in the README.
 - Updated the smoke target to validate the internal wrapper layer instead of touching raw dependency APIs directly.
 - Updated the opt-in end-to-end harness to exercise the public library API instead of the
   internal `core::AccountGenerator`.
@@ -79,3 +88,5 @@ and this project intends to follow [Semantic Versioning](https://semver.org/spec
   of only exercising header-only declarations.
 - Fixed the README public API example so it compiles as written without requiring an undeclared
   `std::move`.
+- Fixed MEGA request-helper failure reporting so error messages include the numeric error code and
+  the latest temporary error when one was observed.

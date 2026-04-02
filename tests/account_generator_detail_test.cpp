@@ -73,6 +73,28 @@ void test_extract_confirmation_link_returns_empty_for_unrelated_body()
     require(!link.has_value(), "unrelated message bodies should not produce a confirmation link");
 }
 
+void test_extract_confirmation_link_rejects_bare_prefix_without_key()
+{
+    const auto link = core::detail::extract_confirmation_link(
+        "Incomplete link: https://mega.nz/#confirm and nothing else."
+    );
+
+    require(!link.has_value(), "bare confirmation prefixes should not be treated as valid links");
+}
+
+void test_extract_confirmation_link_skips_invalid_prefix_and_finds_later_valid_link()
+{
+    const auto link = core::detail::extract_confirmation_link(
+        "Broken: https://mega.nz/confirm?ignored Later: https://mega.nz/#confirmValid_123"
+    );
+
+    require(link.has_value(), "a later valid confirmation link should still be found");
+    require(
+        *link == "https://mega.nz/#confirmValid_123",
+        "the first valid confirmation link should be returned"
+    );
+}
+
 void test_probable_mega_message_heuristic()
 {
     const mail::MessageSummary sender_match{
@@ -97,6 +119,25 @@ void test_probable_mega_message_heuristic()
     require(
         !core::detail::is_probable_mega_message(no_match),
         "unrelated messages should not be treated as probable MEGA messages"
+    );
+}
+
+void test_probable_mega_message_heuristic_is_case_insensitive()
+{
+    const mail::MessageSummary mixed_case_sender{
+        .mail_from = "Support@Mega.NZ",
+    };
+    const mail::MessageSummary mixed_case_subject{
+        .mail_subject = "Confirm your MeGa account",
+    };
+
+    require(
+        core::detail::is_probable_mega_message(mixed_case_sender),
+        "sender matching should be case-insensitive"
+    );
+    require(
+        core::detail::is_probable_mega_message(mixed_case_subject),
+        "subject matching should be case-insensitive"
     );
 }
 
@@ -177,7 +218,10 @@ int main()
     test_extract_confirmation_link_from_plain_text_body();
     test_extract_confirmation_link_from_html_body();
     test_extract_confirmation_link_returns_empty_for_unrelated_body();
+    test_extract_confirmation_link_rejects_bare_prefix_without_key();
+    test_extract_confirmation_link_skips_invalid_prefix_and_finds_later_valid_link();
     test_probable_mega_message_heuristic();
+    test_probable_mega_message_heuristic_is_case_insensitive();
     test_split_display_name();
     test_normalize_optional_string();
     test_validate_confirmed_email_value();
