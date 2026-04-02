@@ -9,6 +9,11 @@ and this project intends to follow [Semantic Versioning](https://semver.org/spec
 
 ### Added
 
+- Added public C++ headers under `include/meganz_account_generator/` with a stable synchronous
+  `AccountGenerator` API.
+- Added a `meganz_account_generator_cpp` library target and `meganz_account_generator_cpp_cli`
+  executable.
+- Added CLI help and public API usage validation alongside the existing deterministic test suite.
 - Added the initial CMake-based project skeleton for the C++ implementation.
 - Added explicit dependency wiring for `meganz/sdk` via `SDK_ROOT`.
 - Added explicit dependency wiring for `guerrillamail-client-c` via either:
@@ -47,7 +52,13 @@ and this project intends to follow [Semantic Versioning](https://semver.org/spec
 
 - Documented the supported local build inputs and verified build commands in the README.
 - Clarified that `cargo` is required and must be available on `PATH` when using `GUERRILLAMAIL_CLIENT_C_ROOT`.
+- Documented the public library usage path and thin CLI usage path in the README.
+- Narrowed the public account-generator config so it no longer exposes the internal MEGA SDK
+  client-type knob.
+- Stopped the CLI from echoing the user-supplied password on success.
 - Updated the smoke target to validate the internal wrapper layer instead of touching raw dependency APIs directly.
+- Updated the opt-in end-to-end harness to exercise the public library API instead of the
+  internal `core::AccountGenerator`.
 - Removed the deprecated password-based account confirmation overload from the MEGA wrapper.
 - Removed GuerrillaMail C ABI leakage from the main C++ wrapper header.
 - Updated the README with exact Pass 3 end-to-end verification instructions and a clear note about
@@ -64,3 +75,7 @@ and this project intends to follow [Semantic Versioning](https://semver.org/spec
   are treated consistently as unset values before wrapper construction.
 - Fixed the opt-in end-to-end test harness to create an exclusive temporary SDK base path instead
   of potentially reusing an existing directory.
+- Fixed the public API usage test so it now links a real out-of-line public-library symbol instead
+  of only exercising header-only declarations.
+- Fixed the README public API example so it compiles as written without requiring an undeclared
+  `std::move`.

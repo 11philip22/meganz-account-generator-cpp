@@ -6,7 +6,9 @@ This repository currently contains:
 
 - explicit MEGA SDK and GuerrillaMail dependency wiring
 - internal wrapper layers for GuerrillaMail and MEGA SDK requests
-- a Pass 3 core account-generation workflow
+- a public C++ library API
+- a thin CLI frontend over that library
+- a Pass 3 core account-generation workflow behind the public boundary
 - deterministic local tests and an opt-in end-to-end verification harness
 
 ## Dependency Inputs
@@ -126,11 +128,88 @@ Run it with:
 
 The exact path can differ depending on the generator.
 
+## Public C++ API
+
+Public headers live under:
+
+- `include/meganz_account_generator/`
+
+The current public entry point is:
+
+- `meganz_account_generator::AccountGenerator`
+
+It uses:
+
+- `meganz_account_generator::AccountGeneratorConfig`
+- `meganz_account_generator::GeneratedAccount`
+
+Link ordinary C++ code against:
+
+- `meganz_account_generator_cpp::library`
+
+Minimal example:
+
+```cpp
+#include "meganz_account_generator/account_generator.hpp"
+
+int main()
+{
+    meganz_account_generator::AccountGeneratorConfig config{
+        .app_key = "your-mega-app-key",
+        .password = "your-test-password",
+        .display_name = "Automation Bot",
+    };
+
+    meganz_account_generator::AccountGenerator generator(config);
+    const auto account = generator.generate();
+}
+```
+
+The public API is synchronous. Public headers do not expose the GuerrillaMail C ABI or MEGA
+listener plumbing.
+
+## CLI Usage
+
+The CLI target is:
+
+- `meganz_account_generator_cpp_cli`
+
+Show help with:
+
+```bash
+./build/src/meganz_account_generator_cpp_cli --help
+```
+
+The CLI requires:
+
+- `--password <value>`
+- a MEGA app key via `--app-key <value>` or `MEGANZ_ACCOUNT_GENERATOR_CPP_APP_KEY`
+
+Optional first-run flags:
+
+- `--display-name <value>`
+- `--proxy <url>`
+- `--timeout-ms <milliseconds>`
+- `--poll-interval-ms <milliseconds>`
+
+Example:
+
+```bash
+MEGANZ_ACCOUNT_GENERATOR_CPP_APP_KEY=your-app-key \
+./build/src/meganz_account_generator_cpp_cli \
+  --password 'your-test-password' \
+  --display-name 'Automation Bot'
+```
+
+The CLI is a thin frontend over the public library API. It does not expose internal wrapper types
+or direct SDK calls. On success it prints the created email and display name, but not the
+user-supplied password.
+
 ## End-to-End Verification
 
 The repository includes an opt-in CTest target, `account_generator_e2e_test`, that exercises
-`core::AccountGenerator` from library code and attempts one real MEGA signup using a temporary
-GuerrillaMail inbox.
+`meganz_account_generator::AccountGenerator` from library code and attempts one real MEGA signup
+using a temporary GuerrillaMail inbox.
 
 Required environment variables:
 
@@ -176,6 +255,7 @@ Verified in this repository:
 - `cmake --build build -j4`
 - `ctest --test-dir build --output-on-failure`
 - `./build/src/smoke/pass1_smoke`
+- `./build/src/meganz_account_generator_cpp_cli --help`
 
 Not verified in this pass:
 
@@ -189,14 +269,17 @@ The initial layout is intentionally simple:
 - `cmake/`
   - local CMake helpers
 - `include/`
-  - future public headers
+  - public headers
 - `src/`
   - project sources
 - `src/core/`
   - high-level signup orchestration
+- `src/cli/`
+  - thin command-line frontend
 - `src/smoke/`
   - Pass 1 smoke target
 - `tests/`
   - unit tests and optional live verification harness
 
-Future passes will fill out the mail, mega, core, and cli layers described in `AGENTS.md`.
+The current implementation follows the mail, mega, core, and cli layering described in
+`AGENTS.md`.

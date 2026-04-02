@@ -1,6 +1,7 @@
 #include <iostream>
 #include <utility>
 
+#include "meganz_account_generator/account_generator.hpp"
 #include "core/account_generator.hpp"
 #include "mail/guerrillamail_client.hpp"
 #include "mega/mega_api_client.hpp"
@@ -12,10 +13,15 @@ int main()
         .password = "pass3-smoke-password",
         .display_name = "Automation Bot",
     };
+    const meganz_account_generator::AccountGeneratorConfig public_config{
+        .app_key = "9gETCbhB",
+        .password = "pass4-smoke-password",
+    };
     const mail::ClientOptions mail_options{};
     const mail::MessageSummary message_summary{};
     const mail::EmailDetails email_details{};
     const core::GeneratedAccount generated_account{};
+    const meganz_account_generator::GeneratedAccount public_account{};
 
     mega_integration::ClientOptions mega_options{
         .app_key = "9gETCbhB",
@@ -29,7 +35,9 @@ int main()
         << "(types="
         << (
             sizeof(generator_config) +
+            sizeof(public_config) +
             sizeof(generated_account) +
+            sizeof(public_account) +
             sizeof(mail_options) +
             sizeof(message_summary) +
             sizeof(email_details)

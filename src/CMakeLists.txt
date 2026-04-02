@@ -37,4 +37,59 @@ if(MEGANZ_ACCOUNT_GENERATOR_CPP_GUERRILLAMAIL_BUILD_TARGET)
     )
 endif()
 
+add_library(
+    meganz_account_generator_cpp
+    STATIC
+    public/account_generator.cpp
+)
+
+add_library(
+    meganz_account_generator_cpp::library
+    ALIAS
+    meganz_account_generator_cpp
+)
+
+target_include_directories(
+    meganz_account_generator_cpp
+    PUBLIC
+    "${PROJECT_SOURCE_DIR}/include"
+    PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+)
+
+target_link_libraries(
+    meganz_account_generator_cpp
+    PUBLIC
+    meganz_account_generator_cpp::project_options
+    PRIVATE
+    meganz_account_generator_cpp::internal
+)
+
+add_executable(
+    meganz_account_generator_cpp_cli
+    cli/main.cpp
+)
+
+target_link_libraries(
+    meganz_account_generator_cpp_cli
+    PRIVATE
+    meganz_account_generator_cpp::library
+)
+
+if(MEGANZ_ACCOUNT_GENERATOR_CPP_GUERRILLAMAIL_RUNTIME_DIR)
+    set_target_properties(
+        meganz_account_generator_cpp_cli
+        PROPERTIES
+        BUILD_RPATH "${MEGANZ_ACCOUNT_GENERATOR_CPP_GUERRILLAMAIL_RUNTIME_DIR}"
+    )
+endif()
+
+if(APPLE AND NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS "15.0")
+    target_link_options(
+        meganz_account_generator_cpp_cli
+        PRIVATE
+        LINKER:-no_warn_duplicate_libraries
+    )
+endif()
+
 add_subdirectory(smoke)

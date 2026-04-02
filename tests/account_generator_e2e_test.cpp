@@ -1,4 +1,4 @@
-#include "core/account_generator.hpp"
+#include "meganz_account_generator/account_generator.hpp"
 
 #include <chrono>
 #include <cstdlib>
@@ -6,9 +6,11 @@
 #include <iostream>
 #include <optional>
 #include <random>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <system_error>
+#include <utility>
 
 namespace
 {
@@ -166,7 +168,7 @@ int main()
                 .value_or(kDefaultPollInterval);
 
         TemporaryBasePath temporary_base_path;
-        core::AccountGeneratorConfig config{
+        meganz_account_generator::AccountGeneratorConfig config{
             .app_key = *app_key,
             .password = *password,
             .display_name = display_name,
@@ -177,7 +179,7 @@ int main()
             .poll_interval = poll_interval,
         };
 
-        core::AccountGenerator generator(std::move(config));
+        meganz_account_generator::AccountGenerator generator(std::move(config));
         const auto account = generator.generate();
 
         require(!account.email.empty(), "generated account email should not be empty");

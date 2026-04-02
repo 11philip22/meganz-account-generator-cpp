@@ -6,6 +6,7 @@ add_executable(
 target_link_libraries(
     pass1_smoke
     PRIVATE
+    meganz_account_generator_cpp::library
     meganz_account_generator_cpp::internal
 )
 
