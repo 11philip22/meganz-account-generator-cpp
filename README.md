@@ -2,11 +2,12 @@
 
 C++ implementation of a MEGA account generator built around the official MEGA SDK and the `guerrillamail-client-c` C ABI.
 
-This repository currently contains the Pass 1 build skeleton:
+This repository currently contains:
 
-- root CMake project
-- explicit dependency wiring
-- smoke target proving the link step works
+- explicit MEGA SDK and GuerrillaMail dependency wiring
+- internal wrapper layers for GuerrillaMail and MEGA SDK requests
+- a Pass 3 core account-generation workflow
+- deterministic local tests and an opt-in end-to-end verification harness
 
 ## Dependency Inputs
 
@@ -125,6 +126,62 @@ Run it with:
 
 The exact path can differ depending on the generator.
 
+## End-to-End Verification
+
+The repository includes an opt-in CTest target, `account_generator_e2e_test`, that exercises
+`core::AccountGenerator` from library code and attempts one real MEGA signup using a temporary
+GuerrillaMail inbox.
+
+Required environment variables:
+
+- `MEGANZ_ACCOUNT_GENERATOR_CPP_E2E_APP_KEY`
+- `MEGANZ_ACCOUNT_GENERATOR_CPP_E2E_PASSWORD`
+
+Optional environment variables:
+
+- `MEGANZ_ACCOUNT_GENERATOR_CPP_E2E_DISPLAY_NAME`
+  - default: `Automation Bot`
+- `MEGANZ_ACCOUNT_GENERATOR_CPP_E2E_PROXY`
+- `MEGANZ_ACCOUNT_GENERATOR_CPP_E2E_TIMEOUT_MS`
+  - default: `300000`
+- `MEGANZ_ACCOUNT_GENERATOR_CPP_E2E_POLL_INTERVAL_MS`
+  - default: `5000`
+
+Build and run it with:
+
+```bash
+cmake -S . -B build \
+  -DCMAKE_BUILD_TYPE=Debug \
+  -DSDK_ROOT=/absolute/path/to/sdk \
+  -DGUERRILLAMAIL_CLIENT_C_ROOT=/absolute/path/to/guerrillamail-client-c
+
+cmake --build build -j4
+
+MEGANZ_ACCOUNT_GENERATOR_CPP_E2E_APP_KEY=your-app-key \
+MEGANZ_ACCOUNT_GENERATOR_CPP_E2E_PASSWORD='your-test-password' \
+ctest --test-dir build -R account_generator_e2e_test --output-on-failure
+```
+
+If the required environment variables are not set, `account_generator_e2e_test` exits with
+code `77` and CTest reports it as skipped.
+
+This harness depends on external MEGA and GuerrillaMail availability. Network issues, service
+outages, email delivery delays, and proxy misconfiguration can all cause the live verification
+to fail even when the deterministic local suite is green.
+
+## Verified Locally
+
+Verified in this repository:
+
+- `cmake --build build -j4`
+- `ctest --test-dir build --output-on-failure`
+- `./build/src/smoke/pass1_smoke`
+
+Not verified in this pass:
+
+- a live MEGA plus GuerrillaMail end-to-end signup run
+- any scenario that requires real network access or externally supplied E2E credentials
+
 ## Source Layout
 
 The initial layout is intentionally simple:
@@ -135,9 +192,11 @@ The initial layout is intentionally simple:
   - future public headers
 - `src/`
   - project sources
+- `src/core/`
+  - high-level signup orchestration
 - `src/smoke/`
   - Pass 1 smoke target
 - `tests/`
-  - future tests
+  - unit tests and optional live verification harness
 
 Future passes will fill out the mail, mega, core, and cli layers described in `AGENTS.md`.

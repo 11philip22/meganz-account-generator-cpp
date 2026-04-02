@@ -75,8 +75,48 @@ add_test(
     COMMAND mega_api_client_interface_test
 )
 
+add_executable(
+    account_generator_detail_test
+    account_generator_detail_test.cpp
+)
+
+target_link_libraries(
+    account_generator_detail_test
+    PRIVATE
+    meganz_account_generator_cpp::internal
+)
+
+add_test(
+    NAME account_generator_detail_test
+    COMMAND account_generator_detail_test
+)
+
+add_executable(
+    account_generator_e2e_test
+    account_generator_e2e_test.cpp
+)
+
+target_link_libraries(
+    account_generator_e2e_test
+    PRIVATE
+    meganz_account_generator_cpp::internal
+)
+
+add_test(
+    NAME account_generator_e2e_test
+    COMMAND account_generator_e2e_test
+)
+
+set_tests_properties(
+    account_generator_e2e_test
+    PROPERTIES
+    SKIP_RETURN_CODE 77
+)
+
 if(MEGANZ_ACCOUNT_GENERATOR_CPP_GUERRILLAMAIL_RUNTIME_DIR)
     set(_runtime_targets
+        account_generator_detail_test
+        account_generator_e2e_test
         request_waiter_test
         mail_wrapper_detail_test
     )
@@ -92,6 +132,8 @@ endif()
 
 if(APPLE AND NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS "15.0")
     set(_apple_link_targets
+        account_generator_detail_test
+        account_generator_e2e_test
         request_waiter_test
         mail_wrapper_detail_test
         mail_header_self_sufficient

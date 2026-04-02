@@ -1,6 +1,7 @@
 add_library(
     meganz_account_generator_cpp_internal
     STATIC
+    core/account_generator.cpp
     mail/guerrillamail_client.cpp
     mega/mega_api_client.cpp
     mega/request_waiter.cpp

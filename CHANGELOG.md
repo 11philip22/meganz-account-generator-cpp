@@ -29,6 +29,19 @@ and this project intends to follow [Semantic Versioning](https://semver.org/spec
   - GuerrillaMail wrapper conversion and status mapping
   - header self-sufficiency
   - deprecated confirmation overload removal
+- Added a high-level `core::AccountGenerator` workflow for Pass 3 with:
+  - random GuerrillaMail alias generation
+  - MEGA signup creation and resume handling
+  - inbox polling with confirmation-link extraction
+  - MEGA account confirmation
+  - best-effort temporary inbox cleanup
+- Added deterministic helper tests for:
+  - confirmation-link extraction
+  - likely-MEGA mail heuristics
+  - display-name splitting
+  - alias shape validation
+- Added an opt-in `account_generator_e2e_test` CTest target that exercises the library flow
+  end-to-end when E2E environment variables are configured.
 
 ### Changed
 
@@ -37,9 +50,17 @@ and this project intends to follow [Semantic Versioning](https://semver.org/spec
 - Updated the smoke target to validate the internal wrapper layer instead of touching raw dependency APIs directly.
 - Removed the deprecated password-based account confirmation overload from the MEGA wrapper.
 - Removed GuerrillaMail C ABI leakage from the main C++ wrapper header.
+- Updated the README with exact Pass 3 end-to-end verification instructions and a clear note about
+  what was and was not verified locally.
 
 ### Fixed
 
 - Fixed the MEGA request waiter timeout path so the listener stays alive until the SDK delivers `onRequestFinish`.
 - Fixed exception-safety holes when adopting raw `gm_client_t*` handles into the C++ wrapper.
 - Fixed undefined-behavior risk in the mail wrapper detail test by removing `const_cast` on string literals.
+- Fixed Pass 3 confirmation validation so account generation rejects missing or mismatched
+  confirmed-email results from the MEGA SDK.
+- Fixed Pass 3 config normalization so empty optional proxy, base-path, and user-agent strings
+  are treated consistently as unset values before wrapper construction.
+- Fixed the opt-in end-to-end test harness to create an exclusive temporary SDK base path instead
+  of potentially reusing an existing directory.
