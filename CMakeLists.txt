@@ -6,6 +6,11 @@ project(
     LANGUAGES C CXX
 )
 
+option(BUILD_TESTING "Build this project's tests" ON)
+if(BUILD_TESTING)
+    enable_testing()
+endif()
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -157,3 +162,7 @@ meganz_account_generator_configure_guerrillamail_client_c(
 )
 
 add_subdirectory(src)
+
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()

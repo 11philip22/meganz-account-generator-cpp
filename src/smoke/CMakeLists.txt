@@ -6,20 +6,8 @@ add_executable(
 target_link_libraries(
     pass1_smoke
     PRIVATE
-    meganz_account_generator_cpp::project_options
-    MEGA::SDKlib
-    "${MEGANZ_ACCOUNT_GENERATOR_CPP_GUERRILLAMAIL_TARGET}"
-    ICU::i18n
-    ICU::uc
-    ICU::data
+    meganz_account_generator_cpp::internal
 )
-
-if(MEGANZ_ACCOUNT_GENERATOR_CPP_GUERRILLAMAIL_BUILD_TARGET)
-    add_dependencies(
-        pass1_smoke
-        "${MEGANZ_ACCOUNT_GENERATOR_CPP_GUERRILLAMAIL_BUILD_TARGET}"
-    )
-endif()
 
 if(MEGANZ_ACCOUNT_GENERATOR_CPP_GUERRILLAMAIL_RUNTIME_DIR)
     set_target_properties(

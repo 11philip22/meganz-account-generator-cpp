@@ -1,36 +1,26 @@
-#include <cstdlib>
 #include <iostream>
-#include <memory>
+#include <utility>
 
-#include <guerrillamail_client.h>
-#include <megaapi.h>
-
-namespace
-{
-constexpr auto kSmokeAppKey = "9gETCbhB";
-constexpr auto kSmokeUserAgent = "meganz-account-generator-cpp-pass1-smoke";
-}
+#include "mail/guerrillamail_client.hpp"
+#include "mega/mega_api_client.hpp"
 
 int main()
 {
-    gm_last_error_clear();
-    const char* last_error = gm_last_error_message();
+    const mail::ClientOptions mail_options{};
+    const mail::MessageSummary message_summary{};
+    const mail::EmailDetails email_details{};
 
-    auto api = std::make_unique<mega::MegaApi>(
-        kSmokeAppKey,
-        static_cast<const char*>(nullptr),
-        kSmokeUserAgent,
-        1u,
-        mega::MegaApi::CLIENT_TYPE_DEFAULT
-    );
-    api->setLogLevel(mega::MegaApi::LOG_LEVEL_ERROR);
+    mega_integration::ClientOptions mega_options{
+        .app_key = "9gETCbhB",
+        .user_agent = "meganz-account-generator-cpp-pass2-smoke",
+    };
+    mega_integration::MegaApiClient mega_client(std::move(mega_options));
+    mega_client.set_log_level(mega::MegaApi::LOG_LEVEL_ERROR);
 
-    std::cout << "pass1_smoke linked the MEGA SDK and guerrillamail-client-c";
-    if(last_error && last_error[0] != '\0')
-    {
-        std::cout << " (GuerrillaMail last error buffer is non-empty)";
-    }
-    std::cout << '\n';
-
-    return EXIT_SUCCESS;
+    std::cout
+        << "pass1_smoke linked the wrapper library, MEGA SDK, and guerrillamail-client-c "
+        << "(mail wrapper types="
+        << (sizeof(mail_options) + sizeof(message_summary) + sizeof(email_details))
+        << ")\n";
+    return 0;
 }
