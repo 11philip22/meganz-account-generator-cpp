@@ -17,9 +17,6 @@ This repository does not guess dependency locations.
 
 The supported inputs are:
 
-- `SDK_ROOT`
-  - Required
-  - Path to a local `meganz/sdk` checkout
 - `GUERRILLAMAIL_CLIENT_C_ROOT`
   - Optional
   - Path to a local `guerrillamail-client-c` checkout
@@ -57,7 +54,7 @@ You need:
 - CMake 3.20 or newer
 - a C compiler with C11 support
 - a C++ compiler with C++20 support
-- a local `meganz/sdk` checkout passed through `SDK_ROOT`
+- the bundled `third_party/meganz-sdk` submodule initialized
 - one supported GuerrillaMail dependency mode
 
 Depending on how your local `meganz/sdk` checkout is configured, you may also need to provide
@@ -67,7 +64,7 @@ explicit discovery hints for upstream dependencies such as ICU and Crypto++.
 
 The project integrates:
 
-- `meganz/sdk` as a CMake subdirectory via `SDK_ROOT`
+- `meganz/sdk` as a CMake subdirectory from the bundled `third_party/meganz-sdk` submodule
 - `guerrillamail-client-c` either from source via `cargo build` or from explicit include/library paths
 
 The project disables unused MEGA SDK extras by default:
@@ -84,12 +81,17 @@ Those defaults can be overridden through normal CMake cache editing if needed la
 
 ## Configure And Build
 
+Initialize the bundled SDK submodule after cloning:
+
+```bash
+git submodule update --init --recursive
+```
+
 Example using a local `guerrillamail-client-c` checkout:
 
 ```bash
 cmake -S . -B build \
   -DCMAKE_BUILD_TYPE=Debug \
-  -DSDK_ROOT=/absolute/path/to/sdk \
   -DGUERRILLAMAIL_CLIENT_C_ROOT=/absolute/path/to/guerrillamail-client-c \
   -DGUERRILLAMAIL_CLIENT_C_PROFILE=Debug
 
@@ -104,7 +106,6 @@ Verified on this machine with adjacent SDK checkouts:
 PKG_CONFIG_PATH=/opt/homebrew/opt/cryptopp/lib/pkgconfig \
 cmake -S . -B build \
   -DCMAKE_BUILD_TYPE=Debug \
-  -DSDK_ROOT=../sdk \
   -DGUERRILLAMAIL_CLIENT_C_INCLUDE_DIR=../../guerrillamail-client-c/include \
   -DGUERRILLAMAIL_CLIENT_C_LIBRARY=../../guerrillamail-client-c/target/debug/libguerrillamail_client_c.dylib \
   -DCMAKE_PREFIX_PATH=/opt/homebrew/opt/icu4c@78 \
@@ -118,7 +119,6 @@ Example using an already built GuerrillaMail library:
 ```bash
 cmake -S . -B build \
   -DCMAKE_BUILD_TYPE=Debug \
-  -DSDK_ROOT=/absolute/path/to/sdk \
   -DGUERRILLAMAIL_CLIENT_C_INCLUDE_DIR=/absolute/path/to/guerrillamail-client-c/include \
   -DGUERRILLAMAIL_CLIENT_C_LIBRARY=/absolute/path/to/libguerrillamail_client_c.dylib
 
@@ -274,7 +274,6 @@ Build and run it with:
 ```bash
 cmake -S . -B build \
   -DCMAKE_BUILD_TYPE=Debug \
-  -DSDK_ROOT=/absolute/path/to/sdk \
   -DGUERRILLAMAIL_CLIENT_C_ROOT=/absolute/path/to/guerrillamail-client-c
 
 cmake --build build -j4
@@ -310,7 +309,7 @@ Not verified in this pass:
 Common local issues:
 
 - configure fails before generation
-  - confirm `SDK_ROOT` points at a real `meganz/sdk` checkout
+  - confirm the bundled `third_party/meganz-sdk` submodule is initialized
   - confirm exactly one GuerrillaMail setup mode is configured
 - `GUERRILLAMAIL_CLIENT_C_ROOT` mode fails during configure or build
   - make sure `cargo` is installed and available on `PATH`

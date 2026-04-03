@@ -71,30 +71,16 @@ else()
 endif()
 
 set(
-    SDK_ROOT
-    ""
-    CACHE PATH
-    "Path to the meganz/sdk repository root"
-)
-if(NOT SDK_ROOT)
-    message(
-        FATAL_ERROR
-        "SDK_ROOT is required. Point it at a local meganz/sdk checkout."
-    )
-endif()
-
-get_filename_component(
-    MEGANZ_ACCOUNT_GENERATOR_CPP_SDK_ROOT
-    "${SDK_ROOT}"
-    ABSOLUTE
-    BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}"
+    MEGANZ_ACCOUNT_GENERATOR_CPP_BUNDLED_SDK_ROOT
+    "${CMAKE_CURRENT_SOURCE_DIR}/third_party/meganz-sdk"
 )
 
-if(NOT EXISTS "${MEGANZ_ACCOUNT_GENERATOR_CPP_SDK_ROOT}/CMakeLists.txt")
+if(NOT EXISTS "${MEGANZ_ACCOUNT_GENERATOR_CPP_BUNDLED_SDK_ROOT}/CMakeLists.txt")
     message(
         FATAL_ERROR
-        "SDK_ROOT does not point to a meganz/sdk source tree: "
-        "${MEGANZ_ACCOUNT_GENERATOR_CPP_SDK_ROOT}"
+        "The bundled meganz/sdk source tree is missing: "
+        "${MEGANZ_ACCOUNT_GENERATOR_CPP_BUNDLED_SDK_ROOT}. "
+        "Initialize the submodule with 'git submodule update --init --recursive'."
     )
 endif()
 
@@ -147,7 +133,7 @@ set(
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 add_subdirectory(
-    "${MEGANZ_ACCOUNT_GENERATOR_CPP_SDK_ROOT}"
+    "${MEGANZ_ACCOUNT_GENERATOR_CPP_BUNDLED_SDK_ROOT}"
     "${CMAKE_BINARY_DIR}/third_party/meganz_sdk"
 )
 

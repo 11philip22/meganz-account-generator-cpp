@@ -12,7 +12,6 @@
     },
     "cmake.configureSettings": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "SDK_ROOT": "${workspaceFolder}/../sdk",
         "GUERRILLAMAIL_CLIENT_C_ROOT": "${workspaceFolder}/../../guerrillamail-client-c",
         "CMAKE_PREFIX_PATH": "/opt/homebrew/opt/icu4c@78",
         "ICU_ROOT": "/opt/homebrew/opt/icu4c@78"
