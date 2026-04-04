@@ -79,6 +79,9 @@ cmake -S . -B build \
 cmake --build build -j
 ```
 
+If you use a multi-config generator such as Visual Studio, add `--config Debug` to `cmake --build`
+and `-C Debug` to `ctest`.
+
 If your local `meganz/sdk` checkout relies on system package discovery for Crypto++ and ICU, pass those hints explicitly instead of assuming CMake will find them on its own.
 
 Verified on this machine with the bundled GuerrillaMail submodule:
@@ -165,6 +168,12 @@ Show help with:
 ./build/src/meganz_account_generator_cpp_cli --help
 ```
 
+With Visual Studio generators, the executable path is typically:
+
+```bash
+./build/src/Debug/meganz_account_generator_cpp_cli --help
+```
+
 The CLI requires:
 
 - `--password <value>`
@@ -184,10 +193,10 @@ Example:
   --display-name 'Automation Bot'
 ```
 
-The CLI generates a fresh random app key locally on each run and passes it to the MEGA SDK for
-that process. The CLI is a thin frontend over the public library API. It does not expose internal
-wrapper types or direct SDK calls. On success it prints the created email and display name, but
-not the user-supplied password.
+The CLI generates a fresh random app key locally on each run and passes it through to the MEGA SDK
+for that process. It does not register or persist app keys. The CLI is a thin frontend over the
+public library API. It does not expose internal wrapper types or direct SDK calls. On success it
+prints the created email and display name, but not the user-supplied password.
 
 ## Runtime Expectations
 
@@ -237,6 +246,9 @@ MEGANZ_ACCOUNT_GENERATOR_CPP_E2E_PASSWORD='your-test-password' \
 ctest --test-dir build -R account_generator_e2e_test --output-on-failure
 ```
 
+On multi-config generators such as Visual Studio, use `cmake --build build --config Debug` and
+`ctest --test-dir build -C Debug`.
+
 If the required environment variables are not set, `account_generator_e2e_test` exits with
 code `77` and CTest reports it as skipped.
 
@@ -248,9 +260,9 @@ to fail even when the deterministic local suite is green.
 
 Verified in this repository:
 
-- `cmake --build build -j4`
-- `ctest --test-dir build --output-on-failure`
-- `./build/src/meganz_account_generator_cpp_cli --help`
+- `cmake --build build --target meganz_account_generator_cpp_cli cli_random_app_key_test public_api_usage_test --config Debug`
+- `ctest --test-dir build -C Debug -R "cli_help_test|cli_random_app_key_test|public_api_usage_test" --output-on-failure`
+- `.\build\src\Debug\meganz_account_generator_cpp_cli.exe --help`
 
 Not verified in this pass:
 
