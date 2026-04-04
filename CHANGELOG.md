@@ -27,9 +27,8 @@ and this project intends to follow [Semantic Versioning](https://semver.org/spec
   - `GUERRILLAMAIL_CLIENT_C_ROOT`, or
   - `GUERRILLAMAIL_CLIENT_C_INCLUDE_DIR` plus `GUERRILLAMAIL_CLIENT_C_LIBRARY`.
 - Added a local CMake helper for validating and configuring GuerrillaMail dependency inputs.
-- Added a smoke target, `pass1_smoke`, that links the MEGA SDK and GuerrillaMail client without performing network activity.
 - Added the initial repository layout under `include/`, `src/`, `tests/`, and `cmake/`.
-- Added the internal wrapper library target used by the smoke target and tests.
+- Added the internal wrapper library target used by tests.
 - Added an idiomatic C++ GuerrillaMail wrapper with:
   - RAII client ownership
   - C-to-C++ message/detail value conversion
@@ -65,7 +64,6 @@ and this project intends to follow [Semantic Versioning](https://semver.org/spec
 - Stopped the CLI from echoing the user-supplied password on success.
 - Documented the concrete architecture, build prerequisites, runtime expectations, and local
   troubleshooting paths in the README.
-- Updated the smoke target to validate the internal wrapper layer instead of touching raw dependency APIs directly.
 - Updated the opt-in end-to-end harness to exercise the public library API instead of the
   internal `core::AccountGenerator`.
 - Removed the deprecated password-based account confirmation overload from the MEGA wrapper.

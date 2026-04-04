@@ -89,24 +89,8 @@ cmake -S . -B build \
   -DCMAKE_PREFIX_PATH=/opt/homebrew/opt/icu4c@78 \
   -DICU_ROOT=/opt/homebrew/opt/icu4c@78
 
-cmake --build build --target pass1_smoke -j4
+cmake --build build -j4
 ```
-
-## Smoke Target
-
-The current smoke target is:
-
-- `pass1_smoke`
-
-It links both upstream dependencies and exits successfully without performing any network requests.
-
-Run it with:
-
-```bash
-./build/src/smoke/pass1_smoke
-```
-
-The exact path can differ depending on the generator.
 
 ## Architecture
 
@@ -262,7 +246,6 @@ Verified in this repository:
 
 - `cmake --build build -j4`
 - `ctest --test-dir build --output-on-failure`
-- `./build/src/smoke/pass1_smoke`
 - `./build/src/meganz_account_generator_cpp_cli --help`
 
 Not verified in this pass:
@@ -309,8 +292,6 @@ The repository is organized by layer:
   - MEGA SDK integration layer
 - `src/cli/`
   - thin command-line frontend
-- `src/smoke/`
-  - Pass 1 smoke target
 - `tests/`
   - unit tests and optional live verification harness
 

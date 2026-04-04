@@ -91,5 +91,3 @@ if(APPLE AND NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS "15.0")
         LINKER:-no_warn_duplicate_libraries
     )
 endif()
-
-add_subdirectory(smoke)
