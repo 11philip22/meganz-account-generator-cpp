@@ -46,6 +46,8 @@ The project integrates:
 
 - `meganz/sdk` as a CMake subdirectory from the bundled `third_party/meganz-sdk` submodule
 - `guerrillamail-client-c` from the bundled `third_party/guerrillamail-client-c` submodule via `cargo build`
+- the bundled GuerrillaMail C ABI as a static library, so the app does not depend on a separate
+  GuerrillaMail runtime DLL at launch
 
 The project disables unused MEGA SDK extras by default:
 

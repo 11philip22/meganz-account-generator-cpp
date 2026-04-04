@@ -61,22 +61,12 @@ function(
     set(_build_target guerrillamail_client_c_build)
 
     if(WIN32)
-        set(_shared_lib "${_cargo_target_dir}/guerrillamail_client_c.dll")
-        if(MSVC)
-            set(_import_lib "${_cargo_target_dir}/guerrillamail_client_c.dll.lib")
-        else()
-            set(_import_lib "${_cargo_target_dir}/libguerrillamail_client_c.dll.a")
-        endif()
-        set(_build_outputs "${_shared_lib}" "${_import_lib}")
-    elseif(APPLE)
-        set(_shared_lib "${_cargo_target_dir}/libguerrillamail_client_c.dylib")
-        set(_build_outputs "${_shared_lib}")
-        set(_runtime_dir "${_cargo_target_dir}")
+        set(_static_lib "${_cargo_target_dir}/guerrillamail_client_c.lib")
     else()
-        set(_shared_lib "${_cargo_target_dir}/libguerrillamail_client_c.so")
-        set(_build_outputs "${_shared_lib}")
-        set(_runtime_dir "${_cargo_target_dir}")
+        set(_static_lib "${_cargo_target_dir}/libguerrillamail_client_c.a")
     endif()
+
+    set(_build_outputs "${_static_lib}")
 
     add_custom_target(
         "${_build_target}"
@@ -87,22 +77,19 @@ function(
         VERBATIM
     )
 
+    add_library("${_target_name}" STATIC IMPORTED GLOBAL)
+    set_target_properties(
+        "${_target_name}"
+        PROPERTIES
+        IMPORTED_LOCATION "${_static_lib}"
+        INTERFACE_INCLUDE_DIRECTORIES "${_root}/include"
+    )
+
     if(WIN32)
-        add_library("${_target_name}" SHARED IMPORTED GLOBAL)
-        set_target_properties(
-            "${_target_name}"
-            PROPERTIES
-            IMPORTED_LOCATION "${_shared_lib}"
-            IMPORTED_IMPLIB "${_import_lib}"
-            INTERFACE_INCLUDE_DIRECTORIES "${_root}/include"
-        )
-    else()
-        add_library("${_target_name}" SHARED IMPORTED GLOBAL)
-        set_target_properties(
-            "${_target_name}"
-            PROPERTIES
-            IMPORTED_LOCATION "${_shared_lib}"
-            INTERFACE_INCLUDE_DIRECTORIES "${_root}/include"
+        set_property(
+            TARGET "${_target_name}"
+            APPEND
+            PROPERTY INTERFACE_LINK_LIBRARIES ntdll
         )
     endif()
 
