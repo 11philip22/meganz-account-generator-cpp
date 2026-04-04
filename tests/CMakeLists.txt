@@ -160,6 +160,29 @@ add_test(
     "${CMAKE_CURRENT_SOURCE_DIR}/cli_help_test.cmake"
 )
 
+add_executable(
+    cli_random_app_key_test
+    cli_random_app_key_test.cpp
+    "${PROJECT_SOURCE_DIR}/src/cli/random_app_key.cpp"
+)
+
+target_include_directories(
+    cli_random_app_key_test
+    PRIVATE
+    "${PROJECT_SOURCE_DIR}/src"
+)
+
+target_link_libraries(
+    cli_random_app_key_test
+    PRIVATE
+    meganz_account_generator_cpp::project_options
+)
+
+add_test(
+    NAME cli_random_app_key_test
+    COMMAND cli_random_app_key_test
+)
+
 if(MEGANZ_ACCOUNT_GENERATOR_CPP_GUERRILLAMAIL_RUNTIME_DIR)
     set(_runtime_targets
         account_generator_detail_test
@@ -168,6 +191,7 @@ if(MEGANZ_ACCOUNT_GENERATOR_CPP_GUERRILLAMAIL_RUNTIME_DIR)
         mail_wrapper_detail_test
         meganz_account_generator_cpp_cli
         public_api_usage_test
+        cli_random_app_key_test
     )
 
     foreach(target_name IN LISTS _runtime_targets)
@@ -190,6 +214,7 @@ if(APPLE AND NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS "15.0")
         meganz_account_generator_cpp_cli
         public_header_self_sufficient
         public_api_usage_test
+        cli_random_app_key_test
     )
 
     foreach(target_name IN LISTS _apple_link_targets)

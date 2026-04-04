@@ -28,8 +28,7 @@ foreach(
     "--proxy"
     "--timeout-ms"
     "--poll-interval-ms"
-    "--app-key"
-    "MEGANZ_ACCOUNT_GENERATOR_CPP_APP_KEY"
+    "fresh random MEGA app key"
 )
     string(FIND "${cli_combined_output}" "${expected_fragment}" fragment_index)
     if(fragment_index EQUAL -1)

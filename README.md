@@ -166,7 +166,6 @@ Show help with:
 The CLI requires:
 
 - `--password <value>`
-- a MEGA app key via `--app-key <value>` or `MEGANZ_ACCOUNT_GENERATOR_CPP_APP_KEY`
 
 Optional first-run flags:
 
@@ -178,24 +177,27 @@ Optional first-run flags:
 Example:
 
 ```bash
-MEGANZ_ACCOUNT_GENERATOR_CPP_APP_KEY=your-app-key \
 ./build/src/meganz_account_generator_cpp_cli \
   --password 'your-test-password' \
   --display-name 'Automation Bot'
 ```
 
-The CLI is a thin frontend over the public library API. It does not expose internal wrapper types
-or direct SDK calls. On success it prints the created email and display name, but not the
-user-supplied password.
+The CLI generates a fresh random app key locally on each run and passes it to the MEGA SDK for
+that process. The CLI is a thin frontend over the public library API. It does not expose internal
+wrapper types or direct SDK calls. On success it prints the created email and display name, but
+not the user-supplied password.
 
 ## Runtime Expectations
 
 A real account-generation run requires:
 
 - network access to both MEGA and GuerrillaMail
-- a valid MEGA app key
 - a password supplied by the caller or CLI user
 - enough time for GuerrillaMail delivery and MEGA confirmation processing
+
+For library callers, that also means supplying a valid MEGA app key in
+`meganz_account_generator::AccountGeneratorConfig`. The CLI now generates a fresh random app key
+for each run instead of accepting one as input.
 
 If you provide a proxy, the library uses it for both the MEGA SDK and GuerrillaMail wrapper.
 

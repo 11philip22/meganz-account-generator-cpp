@@ -68,6 +68,13 @@ target_link_libraries(
 add_executable(
     meganz_account_generator_cpp_cli
     cli/main.cpp
+    cli/random_app_key.cpp
+)
+
+target_include_directories(
+    meganz_account_generator_cpp_cli
+    PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
 target_link_libraries(

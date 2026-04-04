@@ -1,7 +1,6 @@
 #include "meganz_account_generator/account_generator.hpp"
 
 #include <chrono>
-#include <cstdlib>
 #include <exception>
 #include <iostream>
 #include <optional>
@@ -10,6 +9,8 @@
 #include <string_view>
 #include <utility>
 
+#include "cli/random_app_key.hpp"
+
 namespace
 {
 
@@ -17,7 +18,6 @@ constexpr std::string_view kDefaultDisplayName = "Automation Bot";
 
 struct CliOptions
 {
-    std::optional<std::string> app_key;
     std::optional<std::string> password;
     std::string display_name{std::string(kDefaultDisplayName)};
     std::optional<std::string> proxy;
@@ -25,22 +25,6 @@ struct CliOptions
     std::chrono::milliseconds poll_interval{std::chrono::seconds{5}};
     bool show_help{false};
 };
-
-[[nodiscard]] const char* get_env_raw(const char* name)
-{
-    return std::getenv(name);
-}
-
-[[nodiscard]] std::optional<std::string> get_env_string(const char* name)
-{
-    const char* value = get_env_raw(name);
-    if(value == nullptr || value[0] == '\0')
-    {
-        return std::nullopt;
-    }
-
-    return std::string(value);
-}
 
 [[nodiscard]] std::chrono::milliseconds parse_milliseconds(
     std::string_view option_name,
@@ -88,11 +72,9 @@ void print_help(std::ostream& stream)
         << "  meganz_account_generator_cpp_cli --password <password> [options]\n\n"
         << "Required:\n"
         << "  --password <password>          Password for the created MEGA account\n\n"
-        << "Runtime prerequisite:\n"
-        << "  Provide a MEGA app key with --app-key <key> or the\n"
-        << "  MEGANZ_ACCOUNT_GENERATOR_CPP_APP_KEY environment variable.\n\n"
+        << "Runtime behavior:\n"
+        << "  The CLI generates a fresh random MEGA app key each time it starts.\n\n"
         << "Options:\n"
-        << "  --app-key <key>               MEGA app key; overrides the environment variable\n"
         << "  --display-name <name>         Account display name (default: Automation Bot)\n"
         << "  --proxy <url>                 Proxy URL for MEGA and GuerrillaMail requests\n"
         << "  --timeout-ms <milliseconds>   Total time to wait for the confirmation email\n"
@@ -106,7 +88,6 @@ void print_help(std::ostream& stream)
 [[nodiscard]] CliOptions parse_arguments(int argc, char* argv[])
 {
     CliOptions options;
-    options.app_key = get_env_string("MEGANZ_ACCOUNT_GENERATOR_CPP_APP_KEY");
 
     for(int index = 1; index < argc; ++index)
     {
@@ -116,12 +97,6 @@ void print_help(std::ostream& stream)
         {
             options.show_help = true;
             return options;
-        }
-
-        if(argument == "--app-key")
-        {
-            options.app_key = require_value(argument, argc, argv, index);
-            continue;
         }
 
         if(argument == "--password")
@@ -165,14 +140,6 @@ void print_help(std::ostream& stream)
         );
     }
 
-    if(!options.app_key)
-    {
-        throw std::invalid_argument(
-            "A MEGA app key is required. Provide --app-key or "
-            "MEGANZ_ACCOUNT_GENERATOR_CPP_APP_KEY."
-        );
-    }
-
     if(!options.password)
     {
         throw std::invalid_argument("--password is required");
@@ -186,7 +153,7 @@ void print_help(std::ostream& stream)
 )
 {
     return meganz_account_generator::AccountGeneratorConfig{
-        .app_key = std::move(*options.app_key),
+        .app_key = cli::generate_random_app_key(),
         .password = std::move(*options.password),
         .display_name = std::move(options.display_name),
         .proxy = std::move(options.proxy),
