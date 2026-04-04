@@ -3,7 +3,14 @@
     "cmake.sourceDirectory": "${workspaceFolder}",
     "cmake.buildDirectory": "${workspaceFolder}/build",
     "cmake.configureSettings": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "GUERRILLAMAIL_CLIENT_C_PROFILE": "Debug"
+        "CMAKE_TOOLCHAIN_FILE": "${workspaceFolder}/third_party/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "GUERRILLAMAIL_CLIENT_C_PROFILE": "Debug",
+        "USE_OPENSSL": "ON",
+        "VCPKG_MANIFEST_DIR": "${workspaceFolder}/third_party/meganz-sdk",
+        "VCPKG_MANIFEST_FEATURES": "use-openssl",
+        "VCPKG_OVERLAY_PORTS": "${workspaceFolder}/third_party/meganz-sdk/cmake/vcpkg_overlay_ports",
+        "VCPKG_OVERLAY_TRIPLETS": "${workspaceFolder}/cmake/vcpkg_overlay_triplets",
+        "VCPKG_ROOT": "${workspaceFolder}/third_party/vcpkg",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-mega"
     }
 }

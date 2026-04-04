@@ -4,3 +4,6 @@
 [submodule "third_party/guerrillamail-client-c"]
 	path = third_party/guerrillamail-client-c
 	url = https://github.com/11philip22/guerrillamail-client-c
+[submodule "third_party/vcpkg"]
+	path = third_party/vcpkg
+	url = https://github.com/microsoft/vcpkg
