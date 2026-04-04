@@ -2,18 +2,8 @@
     "cmake.configureOnOpen": true,
     "cmake.sourceDirectory": "${workspaceFolder}",
     "cmake.buildDirectory": "${workspaceFolder}/build",
-    "cmake.configureArgs": [
-        "-UGUERRILLAMAIL_CLIENT_C_INCLUDE_DIR",
-        "-UGUERRILLAMAIL_CLIENT_C_LIBRARY",
-        "-UGUERRILLAMAIL_CLIENT_C_IMPLIB"
-    ],
-    "cmake.configureEnvironment": {
-        "PKG_CONFIG_PATH": "/opt/homebrew/opt/cryptopp/lib/pkgconfig"
-    },
     "cmake.configureSettings": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "GUERRILLAMAIL_CLIENT_C_ROOT": "${workspaceFolder}/../../guerrillamail-client-c",
-        "CMAKE_PREFIX_PATH": "/opt/homebrew/opt/icu4c@78",
-        "ICU_ROOT": "/opt/homebrew/opt/icu4c@78"
+        "GUERRILLAMAIL_CLIENT_C_PROFILE": "Debug"
     }
 }

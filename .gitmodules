@@ -1,3 +1,6 @@
 [submodule "third_party/meganz-sdk"]
 	path = third_party/meganz-sdk
 	url = https://github.com/meganz/sdk
+[submodule "third_party/guerrillamail-client-c"]
+	path = third_party/guerrillamail-client-c
+	url = https://github.com/11philip22/guerrillamail-client-c

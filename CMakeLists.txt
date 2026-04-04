@@ -74,12 +74,25 @@ set(
     MEGANZ_ACCOUNT_GENERATOR_CPP_BUNDLED_SDK_ROOT
     "${CMAKE_CURRENT_SOURCE_DIR}/third_party/meganz-sdk"
 )
+set(
+    MEGANZ_ACCOUNT_GENERATOR_CPP_BUNDLED_GUERRILLAMAIL_CLIENT_C_ROOT
+    "${CMAKE_CURRENT_SOURCE_DIR}/third_party/guerrillamail-client-c"
+)
 
 if(NOT EXISTS "${MEGANZ_ACCOUNT_GENERATOR_CPP_BUNDLED_SDK_ROOT}/CMakeLists.txt")
     message(
         FATAL_ERROR
         "The bundled meganz/sdk source tree is missing: "
         "${MEGANZ_ACCOUNT_GENERATOR_CPP_BUNDLED_SDK_ROOT}. "
+        "Initialize the submodule with 'git submodule update --init --recursive'."
+    )
+endif()
+
+if(NOT EXISTS "${MEGANZ_ACCOUNT_GENERATOR_CPP_BUNDLED_GUERRILLAMAIL_CLIENT_C_ROOT}/Cargo.toml")
+    message(
+        FATAL_ERROR
+        "The bundled guerrillamail-client-c source tree is missing: "
+        "${MEGANZ_ACCOUNT_GENERATOR_CPP_BUNDLED_GUERRILLAMAIL_CLIENT_C_ROOT}. "
         "Initialize the submodule with 'git submodule update --init --recursive'."
     )
 endif()
@@ -142,6 +155,7 @@ find_package(ICU REQUIRED COMPONENTS i18n uc data)
 include(guerrillamail_client_c)
 
 meganz_account_generator_configure_guerrillamail_client_c(
+    "${MEGANZ_ACCOUNT_GENERATOR_CPP_BUNDLED_GUERRILLAMAIL_CLIENT_C_ROOT}"
     MEGANZ_ACCOUNT_GENERATOR_CPP_GUERRILLAMAIL_TARGET
     MEGANZ_ACCOUNT_GENERATOR_CPP_GUERRILLAMAIL_RUNTIME_DIR
     MEGANZ_ACCOUNT_GENERATOR_CPP_GUERRILLAMAIL_BUILD_TARGET
