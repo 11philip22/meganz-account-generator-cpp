@@ -1,4 +1,19 @@
-# meganz-account-generator-cpp
+<p align="center">
+  <img src="assets/hero-banner.png" alt="hero pane" width="980">
+</p>
+
+<p align="center">
+  <a href="https://en.cppreference.com/w/cpp/20"><img src="https://img.shields.io/badge/C%2B%2B-20-F59E0B?style=for-the-badge&logo=c%2B%2B&logoColor=white" alt="C++20"></a>
+  <a href="https://cmake.org/"><img src="https://img.shields.io/badge/CMake-3.20%2B-3B82F6?style=for-the-badge&logo=cmake&logoColor=white" alt="CMake 3.20+"></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-8B5CF6?style=for-the-badge" alt="MIT License"></a>
+  <a href="https://git.woldtech.nl/woldtech/mega/meganz-account-generator-cpp"><img src="https://img.shields.io/badge/PRs-Welcome-22C55E?style=for-the-badge" alt="PRs Welcome"></a>
+</p>
+
+<p align="center">
+  <a href="#dependency-inputs">Dependency Inputs</a> · <a href="#build-prerequisites">Build Prerequisites</a> · <a href="#configure-and-build">Configure And Build</a> · <a href="#public-c-api">Public C++ API</a> · <a href="#cli-usage">CLI Usage</a> · <a href="#runtime-expectations">Runtime Expectations</a> · <a href="#end-to-end-verification">End-to-End Verification</a> · <a href="#troubleshooting-local-runs">Troubleshooting</a> · <a href="#source-layout">Source Layout</a>
+</p>
+
+---
 
 C++ implementation of a MEGA account generator built around the official MEGA SDK and the `guerrillamail-client-c` C ABI.
 
@@ -313,3 +328,13 @@ The repository is organized by layer:
 
 The current implementation follows the mail, mega, core, and cli layering described in
 `AGENTS.md`.
+
+## Support
+
+If this crate saves you time or helps your work, support is appreciated:
+
+[![Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/11philip22)
+
+## License
+
+This project is licensed under the MIT License; see the [license](https://opensource.org/licenses/MIT) for details.
