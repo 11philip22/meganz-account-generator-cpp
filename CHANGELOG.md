@@ -3,13 +3,20 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project intends to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
 ### Changed
 
 - Replaced the Rust-backed GuerrillaMail C ABI submodule with the native `guerrillamail-cpp` client.
+- Changed the public API and CLI to require caller-provided MEGA app key, GuerrillaMail alias, and password inputs.
+- Simplified the CMake build around the bundled MEGA SDK and `guerrillamail-cpp` submodules.
+- Collapsed the internal account-generation implementation behind the public library and CLI surfaces.
+
+### Removed
+
+- Removed obsolete internal test/e2e targets, development scaffolding, and checked-in MEGA SDK state-cache files.
 
 ## [0.1.0] - 2026-06-29
 
@@ -94,3 +101,6 @@ and this project intends to follow [Semantic Versioning](https://semver.org/spec
   `std::move`.
 - Fixed MEGA request-helper failure reporting so error messages include the numeric error code and
   the latest temporary error when one was observed.
+
+[unreleased]: https://git.woldtech.nl/woldtech/mega/meganz-account-generator-cpp/compare/v0.1.0...HEAD
+[0.1.0]: https://git.woldtech.nl/woldtech/mega/meganz-account-generator-cpp/releases/tag/v0.1.0
