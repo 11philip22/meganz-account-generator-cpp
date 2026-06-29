@@ -46,13 +46,10 @@ namespace
         .password = std::move(config.password),
         .display_name = std::move(config.display_name),
         .proxy = std::move(config.proxy),
-        .base_path = std::move(config.base_path),
-        .user_agent = std::move(config.user_agent),
         .timeout = config.timeout,
         .poll_interval = config.poll_interval,
         .request_timeout = config.request_timeout,
         .danger_accept_invalid_certs = config.danger_accept_invalid_certs,
-        .worker_thread_count = config.worker_thread_count,
     };
 }
 

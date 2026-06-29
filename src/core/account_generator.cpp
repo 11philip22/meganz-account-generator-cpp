@@ -175,8 +175,6 @@ void validate_config(const core::AccountGeneratorConfig& config)
     config.email_alias = trim_copy(config.email_alias);
     config.display_name = trim_copy(config.display_name);
     config.proxy = normalize_optional_string(std::move(config.proxy));
-    config.base_path = normalize_optional_string(std::move(config.base_path));
-    config.user_agent = normalize_optional_string(std::move(config.user_agent));
     return config;
 }
 
@@ -517,10 +515,7 @@ private:
     {
         return mega_integration::ClientOptions{
             .app_key = config.app_key,
-            .base_path = config.base_path,
-            .user_agent = config.user_agent,
             .request_timeout = config.request_timeout,
-            .worker_thread_count = config.worker_thread_count,
         };
     }
 

@@ -17,10 +17,7 @@ namespace mega_integration
 struct ClientOptions
 {
     std::string app_key;
-    std::optional<std::string> base_path;
-    std::optional<std::string> user_agent;
     std::chrono::milliseconds request_timeout{std::chrono::seconds{30}};
-    unsigned worker_thread_count{1};
 };
 
 class MegaApiClient

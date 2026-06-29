@@ -42,7 +42,7 @@ The core flow is:
 - Public C++20 API with value-style configuration and results.
 - Direct use of `guerrillamail-cpp`.
 - Synchronous facade over MEGA SDK request/listener mechanics.
-- Explicit timeout, polling, proxy, base path, and user-agent configuration.
+- Explicit timeout, polling, proxy, and request-timeout configuration.
 - Thin CLI that delegates to the library API.
 
 ## Requirements

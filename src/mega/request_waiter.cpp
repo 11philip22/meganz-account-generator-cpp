@@ -45,10 +45,10 @@ namespace
         stream << ": " << result.error_string;
     }
 
-    if(result.temporary_error && result.temporary_error.value())
+    if(result.temporary_error)
     {
         stream << " (last temporary error: "
-               << copy_error_string(*result.temporary_error.value())
+               << copy_error_string(*result.temporary_error)
                << ")";
     }
 
@@ -143,9 +143,7 @@ void RequestWaiter::onRequestFinish(
 
         if(temporary_error_)
         {
-            result.temporary_error = std::make_optional(
-                std::unique_ptr<mega::MegaError>(temporary_error_.value()->copy())
-            );
+            result.temporary_error.reset(temporary_error_->copy());
         }
 
         finished_ = true;
@@ -172,7 +170,7 @@ void RequestWaiter::onRequestTemporaryError(
         return;
     }
 
-    temporary_error_ = std::make_optional(std::unique_ptr<mega::MegaError>(error->copy()));
+    temporary_error_.reset(error->copy());
 }
 
 void RequestWaiter::retain_until_finish()

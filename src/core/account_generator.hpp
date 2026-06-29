@@ -75,13 +75,10 @@ struct AccountGeneratorConfig
     std::string password;
     std::string display_name;
     std::optional<std::string> proxy;
-    std::optional<std::string> base_path;
-    std::optional<std::string> user_agent;
     std::chrono::milliseconds timeout{std::chrono::minutes{5}};
     std::chrono::milliseconds poll_interval{std::chrono::seconds{5}};
     std::chrono::milliseconds request_timeout{std::chrono::seconds{30}};
     bool danger_accept_invalid_certs{false};
-    unsigned worker_thread_count{1};
 };
 
 struct GeneratedAccount

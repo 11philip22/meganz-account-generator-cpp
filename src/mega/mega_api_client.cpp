@@ -3,26 +3,6 @@
 #include <stdexcept>
 #include <utility>
 
-namespace
-{
-
-[[nodiscard]] const char* to_nullable_c_str(const std::optional<std::string>& value)
-{
-    if(!value)
-    {
-        return nullptr;
-    }
-
-    return value->c_str();
-}
-
-[[nodiscard]] std::string to_owned_string(std::string_view value)
-{
-    return std::string(value);
-}
-
-} // namespace
-
 namespace mega_integration
 {
 
@@ -36,9 +16,9 @@ MegaApiClient::MegaApiClient(ClientOptions options)
 
     api_ = std::make_unique<mega::MegaApi>(
         options_.app_key.c_str(),
-        to_nullable_c_str(options_.base_path),
-        to_nullable_c_str(options_.user_agent),
-        options_.worker_thread_count,
+        nullptr,
+        nullptr,
+        1,
         mega::MegaApi::CLIENT_TYPE_DEFAULT
     );
 }
@@ -59,10 +39,10 @@ RequestResult MegaApiClient::create_account(
     std::string_view last_name
 )
 {
-    const auto owned_email = to_owned_string(email);
-    const auto owned_password = to_owned_string(password);
-    const auto owned_first_name = to_owned_string(first_name);
-    const auto owned_last_name = to_owned_string(last_name);
+    const auto owned_email = std::string(email);
+    const auto owned_password = std::string(password);
+    const auto owned_first_name = std::string(first_name);
+    const auto owned_last_name = std::string(last_name);
 
     return ensure_success(execute_request(
         options_.request_timeout,
@@ -81,7 +61,7 @@ RequestResult MegaApiClient::create_account(
 
 RequestResult MegaApiClient::resume_create_account(std::string_view sid)
 {
-    const auto owned_sid = to_owned_string(sid);
+    const auto owned_sid = std::string(sid);
     return ensure_success(execute_request(options_.request_timeout, [this, &owned_sid](auto* waiter)
     {
         api_->resumeCreateAccount(owned_sid.c_str(), waiter);
@@ -90,7 +70,7 @@ RequestResult MegaApiClient::resume_create_account(std::string_view sid)
 
 RequestResult MegaApiClient::confirm_account(std::string_view link)
 {
-    const auto owned_link = to_owned_string(link);
+    const auto owned_link = std::string(link);
     return ensure_success(execute_request(options_.request_timeout, [this, &owned_link](auto* waiter)
     {
         api_->confirmAccount(owned_link.c_str(), waiter);
@@ -115,7 +95,7 @@ mega::MegaProxy MegaApiClient::make_proxy(
 
     if(proxy_url && !proxy_url->empty())
     {
-        const auto owned_proxy = to_owned_string(*proxy_url);
+        const auto owned_proxy = std::string(*proxy_url);
         proxy.setProxyType(mega::MegaProxy::PROXY_CUSTOM);
         proxy.setProxyURL(owned_proxy.c_str());
     }

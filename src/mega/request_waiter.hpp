@@ -5,7 +5,6 @@
 #include <future>
 #include <memory>
 #include <mutex>
-#include <optional>
 #include <stdexcept>
 #include <string>
 
@@ -17,7 +16,7 @@ namespace mega_integration
 struct RequestResult
 {
     std::unique_ptr<mega::MegaRequest> request;
-    std::optional<std::unique_ptr<mega::MegaError>> temporary_error;
+    std::unique_ptr<mega::MegaError> temporary_error;
     int error_code{mega::MegaError::API_EINTERNAL};
     std::string error_string;
 
@@ -84,7 +83,7 @@ private:
     void release_keepalive();
 
     mutable std::mutex mutex_;
-    std::optional<std::unique_ptr<mega::MegaError>> temporary_error_;
+    std::unique_ptr<mega::MegaError> temporary_error_;
     std::promise<RequestResult> promise_;
     std::future<RequestResult> future_;
     // When a wait times out, the SDK may still finish the request later on a callback thread.
