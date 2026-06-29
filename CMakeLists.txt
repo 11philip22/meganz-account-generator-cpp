@@ -6,8 +6,6 @@ project(
     LANGUAGES CXX
 )
 
-set(BUILD_TESTING OFF CACHE BOOL "Disable tests for this project" FORCE)
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -91,27 +89,6 @@ if(NOT EXISTS "${MEGANZ_ACCOUNT_GENERATOR_CPP_BUNDLED_GUERRILLAMAIL_CPP_ROOT}/CM
 endif()
 
 set(
-    ENABLE_SDKLIB_EXAMPLES
-    OFF
-    CACHE BOOL
-    "Disable upstream SDK examples in this project"
-    FORCE
-)
-set(
-    ENABLE_SDKLIB_TESTS
-    OFF
-    CACHE BOOL
-    "Disable upstream SDK tests in this project"
-    FORCE
-)
-set(
-    ENABLE_SDKLIB_WERROR
-    OFF
-    CACHE BOOL
-    "Disable upstream SDK warnings-as-errors in this project"
-    FORCE
-)
-set(
     USE_FREEIMAGE
     OFF
     CACHE BOOL
@@ -136,16 +113,10 @@ set(
     "Disable the optional readline dependency by default"
 )
 
-set(GUERRILLAMAIL_CPP_BUILD_TESTS OFF CACHE BOOL "Disable bundled GuerrillaMail C++ tests" FORCE)
-set(GUERRILLAMAIL_CPP_BUILD_EXAMPLES OFF CACHE BOOL "Disable bundled GuerrillaMail C++ examples" FORCE)
-set(GUERRILLAMAIL_CPP_BUILD_LIVE_TESTS OFF CACHE BOOL "Disable bundled GuerrillaMail C++ live tests" FORCE)
-
 add_subdirectory(
     "${MEGANZ_ACCOUNT_GENERATOR_CPP_BUNDLED_SDK_ROOT}"
     "${CMAKE_BINARY_DIR}/third_party/meganz_sdk"
 )
-
-find_package(ICU REQUIRED COMPONENTS i18n uc data)
 
 add_subdirectory(
     "${MEGANZ_ACCOUNT_GENERATOR_CPP_BUNDLED_GUERRILLAMAIL_CPP_ROOT}"
