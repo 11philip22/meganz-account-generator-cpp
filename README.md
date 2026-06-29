@@ -17,7 +17,6 @@
   <a href="#quick-start">Quick Start</a> &middot;
   <a href="#library-api">Library API</a> &middot;
   <a href="#cli">CLI</a> &middot;
-  <a href="#testing">Testing</a> &middot;
   <a href="#layout">Layout</a>
 </p>
 
@@ -45,7 +44,6 @@ The core flow is:
 - Synchronous facade over MEGA SDK request/listener mechanics.
 - Explicit timeout, polling, proxy, base path, and user-agent configuration.
 - Thin CLI that delegates to the library API.
-- Deterministic unit and seam-level tests, plus an opt-in live end-to-end test.
 
 ## Requirements
 
@@ -77,24 +75,16 @@ cmake -S . -B build \
 cmake --build build --parallel
 ```
 
-Run the deterministic test suite:
-
-```bash
-ctest --test-dir build --output-on-failure
-```
-
-With multi-config generators such as Visual Studio, pass the configuration at build and test time:
+With multi-config generators such as Visual Studio, pass the configuration at build time:
 
 ```bash
 cmake --build build --config Debug
-ctest --test-dir build -C Debug --output-on-failure
 ```
 
 Useful CMake inputs:
 
 | Name | Default | Purpose |
 | --- | --- | --- |
-| `BUILD_TESTING` | `ON` | Build the local test targets. |
 | `GUERRILLAMAIL_CLIENT_C_PROFILE` | `Debug` | Cargo profile for the bundled GuerrillaMail C client. Use `Debug` or `Release`. |
 | `MEGANZ_ACCOUNT_GENERATOR_CPP_WARNINGS_AS_ERRORS` | `OFF` | Treat this project's warnings as errors. |
 
@@ -165,38 +155,6 @@ Supported options:
 
 The CLI generates a fresh random MEGA app key for each process. It prints the created email and display name on success, but not the supplied password.
 
-## Testing
-
-Run local tests with CTest:
-
-```bash
-ctest --test-dir build --output-on-failure
-```
-
-The live end-to-end test is `account_generator_e2e_test`. It is skipped unless both required environment variables are set:
-
-| Variable | Purpose |
-| --- | --- |
-| `MEGANZ_ACCOUNT_GENERATOR_CPP_E2E_APP_KEY` | MEGA app key used by the library API. |
-| `MEGANZ_ACCOUNT_GENERATOR_CPP_E2E_PASSWORD` | Password for the generated account. |
-
-Optional live-test variables:
-
-| Variable | Default |
-| --- | --- |
-| `MEGANZ_ACCOUNT_GENERATOR_CPP_E2E_DISPLAY_NAME` | `Automation Bot` |
-| `MEGANZ_ACCOUNT_GENERATOR_CPP_E2E_PROXY` | unset |
-| `MEGANZ_ACCOUNT_GENERATOR_CPP_E2E_TIMEOUT_MS` | `300000` |
-| `MEGANZ_ACCOUNT_GENERATOR_CPP_E2E_POLL_INTERVAL_MS` | `5000` |
-
-Run only the live harness:
-
-```bash
-MEGANZ_ACCOUNT_GENERATOR_CPP_E2E_APP_KEY="your-app-key" \
-MEGANZ_ACCOUNT_GENERATOR_CPP_E2E_PASSWORD="your-test-password" \
-ctest --test-dir build -R account_generator_e2e_test --output-on-failure
-```
-
 ## Layout
 
 ```text
@@ -207,7 +165,6 @@ src/core/   Account-generation orchestration
 src/mail/   GuerrillaMail C client wrapper
 src/mega/   MEGA SDK facade and request waiter
 src/cli/    Command-line frontend
-tests/      Unit, seam, CLI, and opt-in E2E tests
 ```
 
 ## Troubleshooting
@@ -215,5 +172,4 @@ tests/      Unit, seam, CLI, and opt-in E2E tests
 - Missing submodule during configure: run `git submodule update --init --recursive`.
 - `cargo` not found: install Rust tooling or put `cargo` on `PATH`.
 - ICU or SDK dependency discovery fails: pass explicit CMake discovery hints for your installed dependencies.
-- E2E test is skipped: set `MEGANZ_ACCOUNT_GENERATOR_CPP_E2E_APP_KEY` and `MEGANZ_ACCOUNT_GENERATOR_CPP_E2E_PASSWORD`.
 - Live run times out: verify network access, proxy settings, MEGA app key validity, and GuerrillaMail delivery.
