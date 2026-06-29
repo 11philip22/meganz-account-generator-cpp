@@ -12,6 +12,43 @@ add_library(
     meganz_account_generator_cpp
 )
 
+target_compile_features(
+    meganz_account_generator_cpp
+    PUBLIC
+    cxx_std_20
+)
+
+if(MSVC)
+    target_compile_options(
+        meganz_account_generator_cpp
+        PRIVATE
+        /W4
+        /permissive-
+    )
+    if(MEGANZ_ACCOUNT_GENERATOR_CPP_WARNINGS_AS_ERRORS)
+        target_compile_options(
+            meganz_account_generator_cpp
+            PRIVATE
+            /WX
+        )
+    endif()
+else()
+    target_compile_options(
+        meganz_account_generator_cpp
+        PRIVATE
+        -Wall
+        -Wextra
+        -Wpedantic
+    )
+    if(MEGANZ_ACCOUNT_GENERATOR_CPP_WARNINGS_AS_ERRORS)
+        target_compile_options(
+            meganz_account_generator_cpp
+            PRIVATE
+            -Werror
+        )
+    endif()
+endif()
+
 target_include_directories(
     meganz_account_generator_cpp
     PUBLIC
@@ -22,8 +59,6 @@ target_include_directories(
 
 target_link_libraries(
     meganz_account_generator_cpp
-    PUBLIC
-    meganz_account_generator_cpp::project_options
     PRIVATE
     MEGA::SDKlib
     guerrillamail::guerrillamail-cpp
