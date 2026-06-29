@@ -22,7 +22,7 @@
 
 ---
 
-`meganz-account-generator-cpp` is a small C++ library with a thin command-line frontend. It uses the native GuerrillaMail C++ client and hides the callback-heavy MEGA SDK behind narrow C++ interfaces, then orchestrates the account signup flow synchronously.
+`meganz-account-generator-cpp` is a small C++ library with a thin command-line frontend. It uses the bundled GuerrillaMail C++ client and hides the callback-heavy MEGA SDK behind narrow C++ interfaces, then orchestrates the account signup flow synchronously.
 
 The core flow is:
 
@@ -40,7 +40,7 @@ The core flow is:
 ## Features
 
 - Public C++20 API with value-style configuration and results.
-- Direct use of `guerrillamail-cpp`.
+- Bundled `guerrillamail-cpp` and official MEGA SDK submodules.
 - Synchronous facade over MEGA SDK request/listener mechanics.
 - Explicit timeout, polling, proxy, and request-timeout configuration.
 - Thin CLI that delegates to the library API.
@@ -49,11 +49,11 @@ The core flow is:
 
 - CMake 3.22 or newer.
 - C++20 compiler for the project library and CLI.
-- Initialized submodules for `third_party/meganz-sdk` and `third_party/guerrillamail-cpp`.
-- CMake-visible SDK/client dependencies, including ICU, curl, and nlohmann-json.
+- Initialized submodules for `third_party/meganz-sdk`, `third_party/guerrillamail-cpp`, and optionally `third_party/vcpkg`.
+- CMake-visible SDK/client dependencies. The repo's `vcpkg.json` lists Crypto++, curl with zstd, ICU, libsodium, nlohmann-json, SQLite, and OpenSSL.
 - Network access to MEGA and GuerrillaMail for real account-generation runs.
 
-The build uses bundled submodules. It does not guess dependency locations outside the repository. If CMake cannot find SDK dependencies such as ICU or Crypto++, pass explicit CMake discovery hints for your local machine, for example through `CMAKE_PREFIX_PATH`, `ICU_ROOT`, or dependency-specific cache variables.
+The build uses bundled source submodules. It does not guess dependency locations outside the repository. If CMake cannot find SDK dependencies such as ICU or Crypto++, pass explicit CMake discovery hints for your local machine, for example through `CMAKE_PREFIX_PATH`, `ICU_ROOT`, or dependency-specific cache variables.
 
 ## Quick Start
 
@@ -70,6 +70,20 @@ cmake -S . -B build \
   -DCMAKE_BUILD_TYPE=Debug
 
 cmake --build build --parallel
+```
+
+On Windows, the repo includes a vcpkg manifest and MEGA overlay triplet:
+
+```powershell
+cmake -S . -B build `
+  -DCMAKE_TOOLCHAIN_FILE=third_party/vcpkg/scripts/buildsystems/vcpkg.cmake `
+  -DVCPKG_MANIFEST_DIR=. `
+  -DVCPKG_OVERLAY_PORTS=third_party/meganz-sdk/cmake/vcpkg_overlay_ports `
+  -DVCPKG_OVERLAY_TRIPLETS=cmake/vcpkg_overlay_triplets `
+  -DVCPKG_TARGET_TRIPLET=x64-windows-mega `
+  -DUSE_OPENSSL=ON
+
+cmake --build build --config Debug --target meganz_account_generator_cpp_cli
 ```
 
 With multi-config generators such as Visual Studio, pass the configuration at build time:
@@ -115,6 +129,8 @@ int main()
 
 The public API is synchronous. Failures are reported with `AccountGenerationError` subclasses so callers can distinguish mail failures, MEGA signup failures, confirmation timeouts, and confirmation-link parse failures.
 
+Library-only configuration includes `request_timeout` for each MEGA/GuerrillaMail request and `danger_accept_invalid_certs` for local debugging against a TLS-intercepting proxy.
+
 ## CLI
 
 The CLI target is `meganz_account_generator_cpp_cli`.
@@ -152,23 +168,23 @@ Supported options:
 | `--proxy <url>` | No | Proxy URL used for MEGA and GuerrillaMail requests. |
 | `--timeout-ms <milliseconds>` | No | Total time to wait for the confirmation email. |
 | `--poll-interval-ms <milliseconds>` | No | Inbox polling interval while waiting for mail. |
-| `--help` | No | Print usage text. |
+| `--help`, `-h` | No | Print usage text. |
 
 The CLI prints the created email and display name on success, but not the supplied password.
 
 ## Layout
 
 ```text
-cmake/      Local CMake helpers
-include/    Public C++ headers
-src/public/ Public API translation layer
-src/core/   Account-generation orchestration
-src/mega/   MEGA SDK facade and request waiter
-src/cli/    Command-line frontend
+cmake/       Local CMake helpers and vcpkg triplets
+include/     Public C++ headers
+src/         Account-generation implementation
+src/cli/     Command-line frontend
+src/mega/    MEGA SDK facade and request waiter
+third_party/ MEGA SDK, vcpkg, and GuerrillaMail submodules
 ```
 
 ## Troubleshooting
 
 - Missing submodule during configure: run `git submodule update --init --recursive`.
-- ICU or SDK dependency discovery fails: pass explicit CMake discovery hints for your installed dependencies.
+- ICU or SDK dependency discovery fails: use the vcpkg configure example above or pass explicit CMake discovery hints for your installed dependencies.
 - Live run times out: verify network access, proxy settings, MEGA app key validity, and GuerrillaMail delivery.
