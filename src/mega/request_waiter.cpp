@@ -1,8 +1,6 @@
 #include "mega/request_waiter.hpp"
 
 #include <sstream>
-#include <utility>
-
 namespace
 {
 
@@ -83,20 +81,15 @@ std::chrono::milliseconds RequestTimeoutError::timeout() const noexcept
     return timeout_;
 }
 
-MegaRequestError::MegaRequestError(RequestResult result)
+MegaRequestError::MegaRequestError(const RequestResult& result)
     : std::runtime_error(make_request_error_message(result))
-    , result_(std::move(result))
+    , error_code_(result.error_code)
 {
 }
 
 int MegaRequestError::error_code() const noexcept
 {
-    return result_.error_code;
-}
-
-const RequestResult& MegaRequestError::result() const noexcept
-{
-    return result_;
+    return error_code_;
 }
 
 std::shared_ptr<RequestWaiter> RequestWaiter::create()

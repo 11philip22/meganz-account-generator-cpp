@@ -14,16 +14,10 @@
 namespace mega_integration
 {
 
-struct ClientOptions
-{
-    std::string app_key;
-    std::chrono::milliseconds request_timeout{std::chrono::seconds{30}};
-};
-
 class MegaApiClient
 {
 public:
-    explicit MegaApiClient(ClientOptions options);
+    MegaApiClient(std::string app_key, std::chrono::milliseconds request_timeout);
     ~MegaApiClient() = default;
 
     MegaApiClient(const MegaApiClient&) = delete;
@@ -42,7 +36,8 @@ public:
     [[nodiscard]] RequestResult confirm_account(std::string_view link);
 
 private:
-    ClientOptions options_;
+    std::string app_key_;
+    std::chrono::milliseconds request_timeout_;
     std::unique_ptr<mega::MegaApi> api_;
 
     [[nodiscard]] RequestResult ensure_success(RequestResult result) const;

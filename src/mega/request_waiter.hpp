@@ -37,13 +37,12 @@ private:
 class MegaRequestError : public std::runtime_error
 {
 public:
-    explicit MegaRequestError(RequestResult result);
+    explicit MegaRequestError(const RequestResult& result);
 
     [[nodiscard]] int error_code() const noexcept;
-    [[nodiscard]] const RequestResult& result() const noexcept;
 
 private:
-    RequestResult result_;
+    int error_code_;
 };
 
 class RequestWaiter final : public mega::MegaRequestListener

@@ -6,16 +6,17 @@
 namespace mega_integration
 {
 
-MegaApiClient::MegaApiClient(ClientOptions options)
-    : options_(std::move(options))
+MegaApiClient::MegaApiClient(std::string app_key, std::chrono::milliseconds request_timeout)
+    : app_key_(std::move(app_key))
+    , request_timeout_(request_timeout)
 {
-    if(options_.app_key.empty())
+    if(app_key_.empty())
     {
         throw std::invalid_argument("MegaApiClient requires a non-empty app key");
     }
 
     api_ = std::make_unique<mega::MegaApi>(
-        options_.app_key.c_str(),
+        app_key_.c_str(),
         nullptr,
         nullptr,
         1,
@@ -26,7 +27,7 @@ MegaApiClient::MegaApiClient(ClientOptions options)
 RequestResult MegaApiClient::set_proxy(std::optional<std::string_view> proxy_url)
 {
     mega::MegaProxy proxy = make_proxy(proxy_url);
-    return ensure_success(execute_request(options_.request_timeout, [this, &proxy](auto* waiter)
+    return ensure_success(execute_request(request_timeout_, [this, &proxy](auto* waiter)
     {
         api_->setProxySettings(&proxy, waiter);
     }));
@@ -45,7 +46,7 @@ RequestResult MegaApiClient::create_account(
     const auto owned_last_name = std::string(last_name);
 
     return ensure_success(execute_request(
-        options_.request_timeout,
+        request_timeout_,
         [this, &owned_email, &owned_password, &owned_first_name, &owned_last_name](auto* waiter)
         {
             api_->createAccount(
@@ -62,7 +63,7 @@ RequestResult MegaApiClient::create_account(
 RequestResult MegaApiClient::resume_create_account(std::string_view sid)
 {
     const auto owned_sid = std::string(sid);
-    return ensure_success(execute_request(options_.request_timeout, [this, &owned_sid](auto* waiter)
+    return ensure_success(execute_request(request_timeout_, [this, &owned_sid](auto* waiter)
     {
         api_->resumeCreateAccount(owned_sid.c_str(), waiter);
     }));
@@ -71,7 +72,7 @@ RequestResult MegaApiClient::resume_create_account(std::string_view sid)
 RequestResult MegaApiClient::confirm_account(std::string_view link)
 {
     const auto owned_link = std::string(link);
-    return ensure_success(execute_request(options_.request_timeout, [this, &owned_link](auto* waiter)
+    return ensure_success(execute_request(request_timeout_, [this, &owned_link](auto* waiter)
     {
         api_->confirmAccount(owned_link.c_str(), waiter);
     }));
@@ -84,7 +85,7 @@ RequestResult MegaApiClient::ensure_success(RequestResult result) const
         return result;
     }
 
-    throw MegaRequestError(std::move(result));
+    throw MegaRequestError(result);
 }
 
 mega::MegaProxy MegaApiClient::make_proxy(

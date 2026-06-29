@@ -457,7 +457,7 @@ struct AccountGenerator::Impl
     explicit Impl(AccountGeneratorConfig config)
         : config_(validate_and_normalize_config(std::move(config)))
         , mail_client_(make_mail_client(config_))
-        , mega_client_(make_mega_client_options(config_))
+        , mega_client_(config_.app_key, config_.request_timeout)
     {
         if(config_.proxy)
         {
@@ -511,16 +511,6 @@ struct AccountGenerator::Impl
     }
 
 private:
-    [[nodiscard]] static mega_integration::ClientOptions make_mega_client_options(
-        const AccountGeneratorConfig& config
-    )
-    {
-        return mega_integration::ClientOptions{
-            .app_key = config.app_key,
-            .request_timeout = config.request_timeout,
-        };
-    }
-
     [[nodiscard]] std::string wait_for_confirmation_link(std::string_view email)
     {
         const auto start = std::chrono::steady_clock::now();

@@ -18,8 +18,6 @@ public:
 
 enum class MailFailureStatus
 {
-    Ok,
-    Null,
     InvalidArgument,
     Request,
     ResponseParse,
