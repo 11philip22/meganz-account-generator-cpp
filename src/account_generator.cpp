@@ -1,4 +1,4 @@
-#include "core/account_generator.hpp"
+#include "meganz_account_generator/account_generator.hpp"
 
 #include "mega/mega_api_client.hpp"
 
@@ -72,28 +72,28 @@ struct NameParts
     };
 }
 
-[[nodiscard]] core::MailFailureStatus translate_mail_status(
+[[nodiscard]] meganz_account_generator::MailFailureStatus translate_mail_status(
     guerrillamail::ErrorCode code
 ) noexcept
 {
     switch(code)
     {
     case guerrillamail::ErrorCode::invalid_argument:
-        return core::MailFailureStatus::InvalidArgument;
+        return meganz_account_generator::MailFailureStatus::InvalidArgument;
     case guerrillamail::ErrorCode::transport:
     case guerrillamail::ErrorCode::http_status:
-        return core::MailFailureStatus::Request;
+        return meganz_account_generator::MailFailureStatus::Request;
     case guerrillamail::ErrorCode::token_parse:
-        return core::MailFailureStatus::TokenParse;
+        return meganz_account_generator::MailFailureStatus::TokenParse;
     case guerrillamail::ErrorCode::response_parse:
-        return core::MailFailureStatus::ResponseParse;
+        return meganz_account_generator::MailFailureStatus::ResponseParse;
     case guerrillamail::ErrorCode::json_parse:
-        return core::MailFailureStatus::Json;
+        return meganz_account_generator::MailFailureStatus::Json;
     case guerrillamail::ErrorCode::internal:
-        return core::MailFailureStatus::Internal;
+        return meganz_account_generator::MailFailureStatus::Internal;
     }
 
-    return core::MailFailureStatus::Unknown;
+    return meganz_account_generator::MailFailureStatus::Unknown;
 }
 
 [[nodiscard]] std::string make_mega_operation_message(
@@ -129,7 +129,7 @@ struct NameParts
     return value;
 }
 
-void validate_config(const core::AccountGeneratorConfig& config)
+void validate_config(const meganz_account_generator::AccountGeneratorConfig& config)
 {
     if(config.app_key.empty())
     {
@@ -167,8 +167,8 @@ void validate_config(const core::AccountGeneratorConfig& config)
     }
 }
 
-[[nodiscard]] core::AccountGeneratorConfig validate_and_normalize_config(
-    core::AccountGeneratorConfig config
+[[nodiscard]] meganz_account_generator::AccountGeneratorConfig validate_and_normalize_config(
+    meganz_account_generator::AccountGeneratorConfig config
 )
 {
     validate_config(config);
@@ -190,7 +190,7 @@ decltype(auto) wrap_mail_operation(
     }
     catch(const guerrillamail::Error& error)
     {
-        throw core::MailFailureError(
+        throw meganz_account_generator::MailFailureError(
             translate_mail_status(error.code()),
             "GuerrillaMail " + std::string(operation) + " failed: " + error.what()
         );
@@ -209,14 +209,14 @@ decltype(auto) wrap_mega_operation(
     }
     catch(const mega_integration::RequestTimeoutError& error)
     {
-        throw core::MegaSignupError(
+        throw meganz_account_generator::MegaSignupError(
             make_mega_operation_message(operation, error.what()),
             std::nullopt
         );
     }
     catch(const mega_integration::MegaRequestError& error)
     {
-        throw core::MegaSignupError(
+        throw meganz_account_generator::MegaSignupError(
             make_mega_operation_message(operation, error.what()),
             error.error_code()
         );
@@ -327,7 +327,7 @@ void validate_confirmed_email_value(
 {
     if(confirmed_email.empty())
     {
-        throw core::MegaSignupError(
+        throw meganz_account_generator::MegaSignupError(
             "MEGA confirm account finished without a confirmed email",
             std::nullopt
         );
@@ -335,7 +335,7 @@ void validate_confirmed_email_value(
 
     if(confirmed_email != expected_email)
     {
-        throw core::MegaSignupError(
+        throw meganz_account_generator::MegaSignupError(
             "MEGA confirmation returned a different email than the generated account",
             std::nullopt
         );
@@ -343,7 +343,7 @@ void validate_confirmed_email_value(
 }
 
 [[nodiscard]] guerrillamail::ClientOptions make_mail_client_options(
-    const core::AccountGeneratorConfig& config
+    const meganz_account_generator::AccountGeneratorConfig& config
 )
 {
     guerrillamail::ClientOptions options;
@@ -353,7 +353,9 @@ void validate_confirmed_email_value(
     return options;
 }
 
-[[nodiscard]] guerrillamail::Client make_mail_client(const core::AccountGeneratorConfig& config)
+[[nodiscard]] guerrillamail::Client make_mail_client(
+    const meganz_account_generator::AccountGeneratorConfig& config
+)
 {
     return wrap_mail_operation("initialize client", [&config]
     {
@@ -365,7 +367,7 @@ void validate_confirmed_email_value(
 {
     if(result.request == nullptr)
     {
-        throw core::MegaSignupError(
+        throw meganz_account_generator::MegaSignupError(
             "MEGA create account finished without request data",
             std::nullopt
         );
@@ -374,7 +376,7 @@ void validate_confirmed_email_value(
     const auto session_key = copy_nullable_string(result.request->getSessionKey());
     if(session_key.empty())
     {
-        throw core::MegaSignupError(
+        throw meganz_account_generator::MegaSignupError(
             "MEGA create account finished without a session key",
             std::nullopt
         );
@@ -390,7 +392,7 @@ void validate_confirmed_email(
 {
     if(result.request == nullptr)
     {
-        throw core::MegaSignupError(
+        throw meganz_account_generator::MegaSignupError(
             "MEGA confirm account finished without request data",
             std::nullopt
         );
@@ -404,7 +406,7 @@ void validate_confirmed_email(
 
 } // namespace
 
-namespace core
+namespace meganz_account_generator
 {
 
 AccountGenerationError::AccountGenerationError(std::string message)
@@ -594,4 +596,4 @@ GeneratedAccount AccountGenerator::generate()
     return impl_->generate();
 }
 
-} // namespace core
+} // namespace meganz_account_generator

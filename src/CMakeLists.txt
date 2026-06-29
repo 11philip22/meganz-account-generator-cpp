@@ -1,8 +1,7 @@
 add_library(
     meganz_account_generator_cpp
     STATIC
-    public/account_generator.cpp
-    core/account_generator.cpp
+    account_generator.cpp
     mega/mega_api_client.cpp
     mega/request_waiter.cpp
 )
