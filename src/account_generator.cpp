@@ -37,18 +37,6 @@ struct NameParts
     return std::string(value.substr(first, last - first + 1));
 }
 
-[[nodiscard]] std::optional<std::string> normalize_optional_string(
-    std::optional<std::string> value
-)
-{
-    if(!value || value->empty())
-    {
-        return std::nullopt;
-    }
-
-    return value;
-}
-
 [[nodiscard]] NameParts split_display_name(std::string_view display_name)
 {
     const auto trimmed_name = trim_copy(display_name);
@@ -174,7 +162,10 @@ void validate_config(const meganz_account_generator::AccountGeneratorConfig& con
     validate_config(config);
     config.email_alias = trim_copy(config.email_alias);
     config.display_name = trim_copy(config.display_name);
-    config.proxy = normalize_optional_string(std::move(config.proxy));
+    if(config.proxy && config.proxy->empty())
+    {
+        config.proxy.reset();
+    }
     return config;
 }
 
@@ -342,24 +333,17 @@ void validate_confirmed_email_value(
     }
 }
 
-[[nodiscard]] guerrillamail::ClientOptions make_mail_client_options(
-    const meganz_account_generator::AccountGeneratorConfig& config
-)
-{
-    guerrillamail::ClientOptions options;
-    options.proxy = config.proxy;
-    options.timeout = config.request_timeout;
-    options.verify_tls = !config.danger_accept_invalid_certs;
-    return options;
-}
-
 [[nodiscard]] guerrillamail::Client make_mail_client(
     const meganz_account_generator::AccountGeneratorConfig& config
 )
 {
     return wrap_mail_operation("initialize client", [&config]
     {
-        return guerrillamail::Client::create(make_mail_client_options(config));
+        guerrillamail::ClientOptions options;
+        options.proxy = config.proxy;
+        options.timeout = config.request_timeout;
+        options.verify_tls = !config.danger_accept_invalid_certs;
+        return guerrillamail::Client::create(options);
     });
 }
 
@@ -463,7 +447,7 @@ struct AccountGenerator::Impl
         {
             static_cast<void>(wrap_mega_operation("set proxy", [this]
             {
-                return mega_client_.set_proxy(config_.proxy);
+                return mega_client_.set_proxy(*config_.proxy);
             }));
         }
     }

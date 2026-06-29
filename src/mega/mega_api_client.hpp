@@ -5,7 +5,6 @@
 
 #include <chrono>
 #include <memory>
-#include <optional>
 #include <string>
 #include <string_view>
 
@@ -25,7 +24,7 @@ public:
     MegaApiClient(MegaApiClient&&) noexcept = default;
     MegaApiClient& operator=(MegaApiClient&&) noexcept = default;
 
-    [[nodiscard]] RequestResult set_proxy(std::optional<std::string_view> proxy_url);
+    [[nodiscard]] RequestResult set_proxy(std::string_view proxy_url);
     [[nodiscard]] RequestResult create_account(
         std::string_view email,
         std::string_view password,
@@ -41,9 +40,6 @@ private:
     std::unique_ptr<mega::MegaApi> api_;
 
     [[nodiscard]] RequestResult ensure_success(RequestResult result) const;
-    [[nodiscard]] mega::MegaProxy make_proxy(
-        const std::optional<std::string_view>& proxy_url
-    ) const;
 };
 
 } // namespace mega_integration

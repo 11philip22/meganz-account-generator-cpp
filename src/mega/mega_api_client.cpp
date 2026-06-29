@@ -24,9 +24,13 @@ MegaApiClient::MegaApiClient(std::string app_key, std::chrono::milliseconds requ
     );
 }
 
-RequestResult MegaApiClient::set_proxy(std::optional<std::string_view> proxy_url)
+RequestResult MegaApiClient::set_proxy(std::string_view proxy_url)
 {
-    mega::MegaProxy proxy = make_proxy(proxy_url);
+    mega::MegaProxy proxy;
+    const auto owned_proxy = std::string(proxy_url);
+    proxy.setProxyType(mega::MegaProxy::PROXY_CUSTOM);
+    proxy.setProxyURL(owned_proxy.c_str());
+
     return ensure_success(execute_request(request_timeout_, [this, &proxy](auto* waiter)
     {
         api_->setProxySettings(&proxy, waiter);
@@ -86,26 +90,6 @@ RequestResult MegaApiClient::ensure_success(RequestResult result) const
     }
 
     throw MegaRequestError(result);
-}
-
-mega::MegaProxy MegaApiClient::make_proxy(
-    const std::optional<std::string_view>& proxy_url
-) const
-{
-    mega::MegaProxy proxy;
-
-    if(proxy_url && !proxy_url->empty())
-    {
-        const auto owned_proxy = std::string(*proxy_url);
-        proxy.setProxyType(mega::MegaProxy::PROXY_CUSTOM);
-        proxy.setProxyURL(owned_proxy.c_str());
-    }
-    else
-    {
-        proxy.setProxyType(mega::MegaProxy::PROXY_NONE);
-    }
-
-    return proxy;
 }
 
 } // namespace mega_integration
