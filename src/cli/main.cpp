@@ -9,8 +9,6 @@
 #include <string_view>
 #include <utility>
 
-#include "core/account_generator.hpp"
-
 namespace
 {
 
@@ -18,6 +16,8 @@ constexpr std::string_view kDefaultDisplayName = "Automation Bot";
 
 struct CliOptions
 {
+    std::optional<std::string> app_key;
+    std::optional<std::string> email_alias;
     std::optional<std::string> password;
     std::string display_name{std::string(kDefaultDisplayName)};
     std::optional<std::string> proxy;
@@ -69,11 +69,11 @@ void print_help(std::ostream& stream)
 {
     stream
         << "Usage:\n"
-        << "  meganz_account_generator_cpp_cli --password <password> [options]\n\n"
+        << "  meganz_account_generator_cpp_cli --app-key <key> --email-alias <alias> --password <password> [options]\n\n"
         << "Required:\n"
+        << "  --app-key <key>               MEGA app key\n"
+        << "  --email-alias <alias>         GuerrillaMail mailbox alias to create\n"
         << "  --password <password>          Password for the created MEGA account\n\n"
-        << "Runtime behavior:\n"
-        << "  The CLI generates a fresh random MEGA app key each time it starts.\n\n"
         << "Options:\n"
         << "  --display-name <name>         Account display name (default: Automation Bot)\n"
         << "  --proxy <url>                 Proxy URL for MEGA and GuerrillaMail requests\n"
@@ -102,6 +102,18 @@ void print_help(std::ostream& stream)
         if(argument == "--password")
         {
             options.password = require_value(argument, argc, argv, index);
+            continue;
+        }
+
+        if(argument == "--app-key")
+        {
+            options.app_key = require_value(argument, argc, argv, index);
+            continue;
+        }
+
+        if(argument == "--email-alias")
+        {
+            options.email_alias = require_value(argument, argc, argv, index);
             continue;
         }
 
@@ -140,6 +152,16 @@ void print_help(std::ostream& stream)
         );
     }
 
+    if(!options.app_key)
+    {
+        throw std::invalid_argument("--app-key is required");
+    }
+
+    if(!options.email_alias)
+    {
+        throw std::invalid_argument("--email-alias is required");
+    }
+
     if(!options.password)
     {
         throw std::invalid_argument("--password is required");
@@ -153,7 +175,8 @@ void print_help(std::ostream& stream)
 )
 {
     return meganz_account_generator::AccountGeneratorConfig{
-        .app_key = core::generate_random_token(8),
+        .app_key = std::move(*options.app_key),
+        .email_alias = std::move(*options.email_alias),
         .password = std::move(*options.password),
         .display_name = std::move(options.display_name),
         .proxy = std::move(options.proxy),

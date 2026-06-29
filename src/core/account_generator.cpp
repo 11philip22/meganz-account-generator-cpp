@@ -10,7 +10,6 @@
 #include <cctype>
 #include <chrono>
 #include <optional>
-#include <random>
 #include <sstream>
 #include <stdexcept>
 #include <string_view>
@@ -137,6 +136,11 @@ void validate_config(const core::AccountGeneratorConfig& config)
         throw std::invalid_argument("AccountGenerator requires a non-empty app_key");
     }
 
+    if(trim_copy(config.email_alias).empty())
+    {
+        throw std::invalid_argument("AccountGenerator requires a non-empty email_alias");
+    }
+
     if(config.password.empty())
     {
         throw std::invalid_argument("AccountGenerator requires a non-empty password");
@@ -168,6 +172,7 @@ void validate_config(const core::AccountGeneratorConfig& config)
 )
 {
     validate_config(config);
+    config.email_alias = trim_copy(config.email_alias);
     config.display_name = trim_copy(config.display_name);
     config.proxy = normalize_optional_string(std::move(config.proxy));
     config.base_path = normalize_optional_string(std::move(config.base_path));
@@ -404,30 +409,6 @@ void validate_confirmed_email(
 namespace core
 {
 
-std::string generate_random_token(std::size_t length)
-{
-    if(length == 0)
-    {
-        throw std::invalid_argument("random token length must be greater than zero");
-    }
-
-    static constexpr std::string_view kAlphabet = "abcdefghijklmnopqrstuvwxyz0123456789";
-
-    std::random_device random_device;
-    std::mt19937_64 engine(random_device());
-    std::uniform_int_distribution<std::size_t> distribution(0, kAlphabet.size() - 1);
-
-    std::string alias;
-    alias.reserve(length);
-
-    for(std::size_t index = 0; index < length; ++index)
-    {
-        alias.push_back(kAlphabet[distribution(engine)]);
-    }
-
-    return alias;
-}
-
 AccountGenerationError::AccountGenerationError(std::string message)
     : std::runtime_error(std::move(message))
 {
@@ -489,10 +470,9 @@ struct AccountGenerator::Impl
 
     [[nodiscard]] GeneratedAccount generate()
     {
-        const auto alias = generate_random_token(12);
-        const auto email = wrap_mail_operation("create_email", [this, &alias]
+        const auto email = wrap_mail_operation("create_email", [this]
         {
-            return mail_client_.create_email(alias);
+            return mail_client_.create_email(config_.email_alias);
         });
 
         EmailCleanupGuard cleanup(mail_client_);

@@ -71,6 +71,7 @@ public:
 struct AccountGeneratorConfig
 {
     std::string app_key;
+    std::string email_alias;
     std::string password;
     std::string display_name{"Automation Bot"};
     std::optional<std::string> proxy;

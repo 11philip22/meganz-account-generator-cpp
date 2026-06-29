@@ -42,6 +42,7 @@ namespace
 {
     return core::AccountGeneratorConfig{
         .app_key = std::move(config.app_key),
+        .email_alias = std::move(config.email_alias),
         .password = std::move(config.password),
         .display_name = std::move(config.display_name),
         .proxy = std::move(config.proxy),

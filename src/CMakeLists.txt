@@ -1,38 +1,10 @@
 add_library(
-    meganz_account_generator_cpp_internal
-    STATIC
-    core/account_generator.cpp
-    mega/mega_api_client.cpp
-    mega/request_waiter.cpp
-)
-
-add_library(
-    meganz_account_generator_cpp::internal
-    ALIAS
-    meganz_account_generator_cpp_internal
-)
-
-target_include_directories(
-    meganz_account_generator_cpp_internal
-    PUBLIC
-    "${CMAKE_CURRENT_SOURCE_DIR}"
-)
-
-target_link_libraries(
-    meganz_account_generator_cpp_internal
-    PUBLIC
-    meganz_account_generator_cpp::project_options
-    MEGA::SDKlib
-    guerrillamail::guerrillamail-cpp
-    ICU::i18n
-    ICU::uc
-    ICU::data
-)
-
-add_library(
     meganz_account_generator_cpp
     STATIC
     public/account_generator.cpp
+    core/account_generator.cpp
+    mega/mega_api_client.cpp
+    mega/request_waiter.cpp
 )
 
 add_library(
@@ -54,7 +26,8 @@ target_link_libraries(
     PUBLIC
     meganz_account_generator_cpp::project_options
     PRIVATE
-    meganz_account_generator_cpp::internal
+    MEGA::SDKlib
+    guerrillamail::guerrillamail-cpp
 )
 
 add_executable(
@@ -62,17 +35,10 @@ add_executable(
     cli/main.cpp
 )
 
-target_include_directories(
-    meganz_account_generator_cpp_cli
-    PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}"
-)
-
 target_link_libraries(
     meganz_account_generator_cpp_cli
     PRIVATE
     meganz_account_generator_cpp::library
-    meganz_account_generator_cpp::internal
 )
 
 if(APPLE AND NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS "15.0")

@@ -2,7 +2,6 @@
 #define MEGANZ_ACCOUNT_GENERATOR_CPP_SRC_CORE_ACCOUNT_GENERATOR_HPP
 
 #include <chrono>
-#include <cstddef>
 #include <memory>
 #include <optional>
 #include <stdexcept>
@@ -72,6 +71,7 @@ public:
 struct AccountGeneratorConfig
 {
     std::string app_key;
+    std::string email_alias;
     std::string password;
     std::string display_name;
     std::optional<std::string> proxy;
@@ -108,8 +108,6 @@ private:
     struct Impl;
     std::unique_ptr<Impl> impl_;
 };
-
-[[nodiscard]] std::string generate_random_token(std::size_t length);
 
 } // namespace core
 

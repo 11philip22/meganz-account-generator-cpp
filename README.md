@@ -101,6 +101,7 @@ int main()
 {
     meganz_account_generator::AccountGeneratorConfig config{
         .app_key = "your-mega-app-key",
+        .email_alias = "your-mailbox-alias",
         .password = "your-test-password",
         .display_name = "Automation Bot",
     };
@@ -134,6 +135,8 @@ Create an account:
 
 ```bash
 ./build/src/meganz_account_generator_cpp_cli \
+  --app-key "your-mega-app-key" \
+  --email-alias "your-mailbox-alias" \
   --password "your-test-password" \
   --display-name "Automation Bot"
 ```
@@ -142,6 +145,8 @@ Supported options:
 
 | Option | Required | Description |
 | --- | --- | --- |
+| `--app-key <key>` | Yes | MEGA app key. |
+| `--email-alias <alias>` | Yes | GuerrillaMail mailbox alias to create. |
 | `--password <password>` | Yes | Password for the created MEGA account. |
 | `--display-name <name>` | No | Account display name. Defaults to `Automation Bot`. |
 | `--proxy <url>` | No | Proxy URL used for MEGA and GuerrillaMail requests. |
@@ -149,7 +154,7 @@ Supported options:
 | `--poll-interval-ms <milliseconds>` | No | Inbox polling interval while waiting for mail. |
 | `--help` | No | Print usage text. |
 
-The CLI generates a fresh random MEGA app key for each process. It prints the created email and display name on success, but not the supplied password.
+The CLI prints the created email and display name on success, but not the supplied password.
 
 ## Layout
 
