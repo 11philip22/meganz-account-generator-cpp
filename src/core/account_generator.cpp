@@ -184,7 +184,7 @@ public:
 
         try
         {
-            static_cast<void>(mail_client_.delete_email(email_));
+            mail_client_.delete_email(email_);
         }
         catch(...)
         {

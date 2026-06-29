@@ -6,9 +6,9 @@
 
 <p align="center">
   <a href="https://en.cppreference.com/w/cpp/20"><img src="https://img.shields.io/badge/C%2B%2B-20-00599C?style=for-the-badge&logo=c%2B%2B&logoColor=white" alt="C++20"></a>
-  <a href="https://cmake.org/"><img src="https://img.shields.io/badge/CMake-3.20%2B-064F8C?style=for-the-badge&logo=cmake&logoColor=white" alt="CMake 3.20+"></a>
+  <a href="https://cmake.org/"><img src="https://img.shields.io/badge/CMake-3.22%2B-064F8C?style=for-the-badge&logo=cmake&logoColor=white" alt="CMake 3.22+"></a>
   <a href="https://github.com/meganz/sdk"><img src="https://img.shields.io/badge/MEGA-SDK-D9272E?style=for-the-badge" alt="MEGA SDK"></a>
-  <a href="https://github.com/11philip22/guerrillamail-client-c"><img src="https://img.shields.io/badge/GuerrillaMail-C%20Client-2F855A?style=for-the-badge" alt="GuerrillaMail C client"></a>
+  <a href="https://github.com/11philip22/guerrillamail-client-cpp"><img src="https://img.shields.io/badge/GuerrillaMail-C%2B%2B%20Client-2F855A?style=for-the-badge" alt="GuerrillaMail C++ client"></a>
 </p>
 
 <p align="center">
@@ -22,7 +22,7 @@
 
 ---
 
-`meganz-account-generator-cpp` is a small C++ library with a thin command-line frontend. It hides the blocking GuerrillaMail C ABI and the callback-heavy MEGA SDK behind narrow C++ interfaces, then orchestrates the account signup flow synchronously.
+`meganz-account-generator-cpp` is a small C++ library with a thin command-line frontend. It uses the native GuerrillaMail C++ client and hides the callback-heavy MEGA SDK behind narrow C++ interfaces, then orchestrates the account signup flow synchronously.
 
 The core flow is:
 
@@ -40,19 +40,17 @@ The core flow is:
 ## Features
 
 - Public C++20 API with value-style configuration and results.
-- RAII wrapper around `guerrillamail-client-c`.
+- RAII wrapper around `guerrillamail-cpp`.
 - Synchronous facade over MEGA SDK request/listener mechanics.
 - Explicit timeout, polling, proxy, base path, and user-agent configuration.
 - Thin CLI that delegates to the library API.
 
 ## Requirements
 
-- CMake 3.20 or newer.
-- C11 compiler for C interop code.
+- CMake 3.22 or newer.
 - C++20 compiler for the project library and CLI.
-- `cargo` on `PATH` to build the bundled GuerrillaMail C client.
-- Initialized submodules for `third_party/meganz-sdk` and `third_party/guerrillamail-client-c`.
-- CMake-visible SDK dependencies, including ICU.
+- Initialized submodules for `third_party/meganz-sdk` and `third_party/guerrillamail-cpp`.
+- CMake-visible SDK/client dependencies, including ICU, curl, and nlohmann-json.
 - Network access to MEGA and GuerrillaMail for real account-generation runs.
 
 The build uses bundled submodules. It does not guess dependency locations outside the repository. If CMake cannot find SDK dependencies such as ICU or Crypto++, pass explicit CMake discovery hints for your local machine, for example through `CMAKE_PREFIX_PATH`, `ICU_ROOT`, or dependency-specific cache variables.
@@ -69,8 +67,7 @@ Configure and build:
 
 ```bash
 cmake -S . -B build \
-  -DCMAKE_BUILD_TYPE=Debug \
-  -DGUERRILLAMAIL_CLIENT_C_PROFILE=Debug
+  -DCMAKE_BUILD_TYPE=Debug
 
 cmake --build build --parallel
 ```
@@ -85,7 +82,6 @@ Useful CMake inputs:
 
 | Name | Default | Purpose |
 | --- | --- | --- |
-| `GUERRILLAMAIL_CLIENT_C_PROFILE` | `Debug` | Cargo profile for the bundled GuerrillaMail C client. Use `Debug` or `Release`. |
 | `MEGANZ_ACCOUNT_GENERATOR_CPP_WARNINGS_AS_ERRORS` | `OFF` | Treat this project's warnings as errors. |
 
 ## Library API
@@ -162,7 +158,7 @@ cmake/      Local CMake helpers
 include/    Public C++ headers
 src/public/ Public API translation layer
 src/core/   Account-generation orchestration
-src/mail/   GuerrillaMail C client wrapper
+src/mail/   GuerrillaMail C++ client wrapper
 src/mega/   MEGA SDK facade and request waiter
 src/cli/    Command-line frontend
 ```
@@ -170,6 +166,5 @@ src/cli/    Command-line frontend
 ## Troubleshooting
 
 - Missing submodule during configure: run `git submodule update --init --recursive`.
-- `cargo` not found: install Rust tooling or put `cargo` on `PATH`.
 - ICU or SDK dependency discovery fails: pass explicit CMake discovery hints for your installed dependencies.
 - Live run times out: verify network access, proxy settings, MEGA app key validity, and GuerrillaMail delivery.

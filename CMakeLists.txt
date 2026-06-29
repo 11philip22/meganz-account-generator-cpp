@@ -1,17 +1,14 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.22)
 
 project(
     meganz_account_generator_cpp
     VERSION 0.1.0
-    LANGUAGES C CXX
+    LANGUAGES CXX
 )
 
 set(BUILD_TESTING OFF CACHE BOOL "Disable tests for this project" FORCE)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_C_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -32,7 +29,6 @@ add_library(
 target_compile_features(
     meganz_account_generator_cpp_project_options
     INTERFACE
-    c_std_11
     cxx_std_20
 )
 
@@ -72,8 +68,8 @@ set(
     "${CMAKE_CURRENT_SOURCE_DIR}/third_party/meganz-sdk"
 )
 set(
-    MEGANZ_ACCOUNT_GENERATOR_CPP_BUNDLED_GUERRILLAMAIL_CLIENT_C_ROOT
-    "${CMAKE_CURRENT_SOURCE_DIR}/third_party/guerrillamail-client-c"
+    MEGANZ_ACCOUNT_GENERATOR_CPP_BUNDLED_GUERRILLAMAIL_CPP_ROOT
+    "${CMAKE_CURRENT_SOURCE_DIR}/third_party/guerrillamail-cpp"
 )
 
 if(NOT EXISTS "${MEGANZ_ACCOUNT_GENERATOR_CPP_BUNDLED_SDK_ROOT}/CMakeLists.txt")
@@ -85,11 +81,11 @@ if(NOT EXISTS "${MEGANZ_ACCOUNT_GENERATOR_CPP_BUNDLED_SDK_ROOT}/CMakeLists.txt")
     )
 endif()
 
-if(NOT EXISTS "${MEGANZ_ACCOUNT_GENERATOR_CPP_BUNDLED_GUERRILLAMAIL_CLIENT_C_ROOT}/Cargo.toml")
+if(NOT EXISTS "${MEGANZ_ACCOUNT_GENERATOR_CPP_BUNDLED_GUERRILLAMAIL_CPP_ROOT}/CMakeLists.txt")
     message(
         FATAL_ERROR
-        "The bundled guerrillamail-client-c source tree is missing: "
-        "${MEGANZ_ACCOUNT_GENERATOR_CPP_BUNDLED_GUERRILLAMAIL_CLIENT_C_ROOT}. "
+        "The bundled guerrillamail-cpp source tree is missing: "
+        "${MEGANZ_ACCOUNT_GENERATOR_CPP_BUNDLED_GUERRILLAMAIL_CPP_ROOT}. "
         "Initialize the submodule with 'git submodule update --init --recursive'."
     )
 endif()
@@ -140,7 +136,9 @@ set(
     "Disable the optional readline dependency by default"
 )
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+set(GUERRILLAMAIL_CPP_BUILD_TESTS OFF CACHE BOOL "Disable bundled GuerrillaMail C++ tests" FORCE)
+set(GUERRILLAMAIL_CPP_BUILD_EXAMPLES OFF CACHE BOOL "Disable bundled GuerrillaMail C++ examples" FORCE)
+set(GUERRILLAMAIL_CPP_BUILD_LIVE_TESTS OFF CACHE BOOL "Disable bundled GuerrillaMail C++ live tests" FORCE)
 
 add_subdirectory(
     "${MEGANZ_ACCOUNT_GENERATOR_CPP_BUNDLED_SDK_ROOT}"
@@ -149,13 +147,9 @@ add_subdirectory(
 
 find_package(ICU REQUIRED COMPONENTS i18n uc data)
 
-include(guerrillamail_client_c)
-
-meganz_account_generator_configure_guerrillamail_client_c(
-    "${MEGANZ_ACCOUNT_GENERATOR_CPP_BUNDLED_GUERRILLAMAIL_CLIENT_C_ROOT}"
-    MEGANZ_ACCOUNT_GENERATOR_CPP_GUERRILLAMAIL_TARGET
-    MEGANZ_ACCOUNT_GENERATOR_CPP_GUERRILLAMAIL_RUNTIME_DIR
-    MEGANZ_ACCOUNT_GENERATOR_CPP_GUERRILLAMAIL_BUILD_TARGET
+add_subdirectory(
+    "${MEGANZ_ACCOUNT_GENERATOR_CPP_BUNDLED_GUERRILLAMAIL_CPP_ROOT}"
+    "${CMAKE_BINARY_DIR}/third_party/guerrillamail_cpp"
 )
 
 add_subdirectory(src)

@@ -82,7 +82,7 @@ public:
         std::string_view email,
         std::string_view mail_id
     ) const;
-    [[nodiscard]] bool delete_email(std::string_view email) const;
+    void delete_email(std::string_view email) const;
 
 private:
     struct Impl;
