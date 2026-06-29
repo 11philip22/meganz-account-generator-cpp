@@ -39,13 +39,8 @@ MegaApiClient::MegaApiClient(ClientOptions options)
         to_nullable_c_str(options_.base_path),
         to_nullable_c_str(options_.user_agent),
         options_.worker_thread_count,
-        options_.client_type
+        mega::MegaApi::CLIENT_TYPE_DEFAULT
     );
-}
-
-void MegaApiClient::set_log_level(int level)
-{
-    api_->setLogLevel(level);
 }
 
 RequestResult MegaApiClient::set_proxy(std::optional<std::string_view> proxy_url)
@@ -54,17 +49,6 @@ RequestResult MegaApiClient::set_proxy(std::optional<std::string_view> proxy_url
     return ensure_success(execute_request(options_.request_timeout, [this, &proxy](auto* waiter)
     {
         api_->setProxySettings(&proxy, waiter);
-    }));
-}
-
-RequestResult MegaApiClient::login(std::string_view email, std::string_view password)
-{
-    const auto owned_email = to_owned_string(email);
-    const auto owned_password = to_owned_string(password);
-
-    return ensure_success(execute_request(options_.request_timeout, [this, &owned_email, &owned_password](auto* waiter)
-    {
-        api_->login(owned_email.c_str(), owned_password.c_str(), waiter);
     }));
 }
 
@@ -101,29 +85,6 @@ RequestResult MegaApiClient::resume_create_account(std::string_view sid)
     return ensure_success(execute_request(options_.request_timeout, [this, &owned_sid](auto* waiter)
     {
         api_->resumeCreateAccount(owned_sid.c_str(), waiter);
-    }));
-}
-
-RequestResult MegaApiClient::resend_signup_link(
-    std::string_view email,
-    std::string_view name
-)
-{
-    const auto owned_email = to_owned_string(email);
-    const auto owned_name = to_owned_string(name);
-
-    return ensure_success(execute_request(options_.request_timeout, [this, &owned_email, &owned_name](auto* waiter)
-    {
-        api_->resendSignupLink(owned_email.c_str(), owned_name.c_str(), waiter);
-    }));
-}
-
-RequestResult MegaApiClient::query_signup_link(std::string_view link)
-{
-    const auto owned_link = to_owned_string(link);
-    return ensure_success(execute_request(options_.request_timeout, [this, &owned_link](auto* waiter)
-    {
-        api_->querySignupLink(owned_link.c_str(), waiter);
     }));
 }
 

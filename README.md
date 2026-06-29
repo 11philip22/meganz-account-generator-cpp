@@ -40,7 +40,7 @@ The core flow is:
 ## Features
 
 - Public C++20 API with value-style configuration and results.
-- RAII wrapper around `guerrillamail-cpp`.
+- Direct use of `guerrillamail-cpp`.
 - Synchronous facade over MEGA SDK request/listener mechanics.
 - Explicit timeout, polling, proxy, base path, and user-agent configuration.
 - Thin CLI that delegates to the library API.
@@ -158,7 +158,6 @@ cmake/      Local CMake helpers
 include/    Public C++ headers
 src/public/ Public API translation layer
 src/core/   Account-generation orchestration
-src/mail/   GuerrillaMail C++ client wrapper
 src/mega/   MEGA SDK facade and request waiter
 src/cli/    Command-line frontend
 ```

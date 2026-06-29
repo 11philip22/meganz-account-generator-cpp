@@ -2,6 +2,7 @@
 #define MEGANZ_ACCOUNT_GENERATOR_CPP_SRC_CORE_ACCOUNT_GENERATOR_HPP
 
 #include <chrono>
+#include <cstddef>
 #include <memory>
 #include <optional>
 #include <stdexcept>
@@ -81,7 +82,6 @@ struct AccountGeneratorConfig
     std::chrono::milliseconds request_timeout{std::chrono::seconds{30}};
     bool danger_accept_invalid_certs{false};
     unsigned worker_thread_count{1};
-    int mega_client_type{0};
 };
 
 struct GeneratedAccount
@@ -108,6 +108,8 @@ private:
     struct Impl;
     std::unique_ptr<Impl> impl_;
 };
+
+[[nodiscard]] std::string generate_random_token(std::size_t length);
 
 } // namespace core
 

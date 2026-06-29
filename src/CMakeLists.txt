@@ -2,7 +2,6 @@ add_library(
     meganz_account_generator_cpp_internal
     STATIC
     core/account_generator.cpp
-    mail/guerrillamail_client.cpp
     mega/mega_api_client.cpp
     mega/request_waiter.cpp
 )
@@ -61,7 +60,6 @@ target_link_libraries(
 add_executable(
     meganz_account_generator_cpp_cli
     cli/main.cpp
-    cli/random_app_key.cpp
 )
 
 target_include_directories(
@@ -74,6 +72,7 @@ target_link_libraries(
     meganz_account_generator_cpp_cli
     PRIVATE
     meganz_account_generator_cpp::library
+    meganz_account_generator_cpp::internal
 )
 
 if(APPLE AND NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS "15.0")

@@ -65,16 +65,6 @@ bool RequestResult::ok() const noexcept
     return error_code == mega::MegaError::API_OK;
 }
 
-int RequestResult::request_type() const noexcept
-{
-    if(request == nullptr)
-    {
-        return -1;
-    }
-
-    return request->getType();
-}
-
 RequestTimeoutError::RequestTimeoutError(std::chrono::milliseconds timeout)
     : std::runtime_error(
         [timeout]

@@ -22,7 +22,6 @@ struct RequestResult
     std::string error_string;
 
     [[nodiscard]] bool ok() const noexcept;
-    [[nodiscard]] int request_type() const noexcept;
 };
 
 class RequestTimeoutError : public std::runtime_error

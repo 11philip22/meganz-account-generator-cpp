@@ -1,44 +1,97 @@
 #include "core/account_generator.hpp"
 
-#include "core/account_generator_detail.hpp"
-
-#include "mail/guerrillamail_client.hpp"
 #include "mega/mega_api_client.hpp"
+
+#include <guerrillamail/client.hpp>
+#include <guerrillamail/error.hpp>
 
 #include <algorithm>
 #include <array>
 #include <cctype>
 #include <chrono>
+#include <optional>
 #include <random>
 #include <sstream>
+#include <stdexcept>
+#include <string_view>
 #include <thread>
 #include <utility>
 
 namespace
 {
 
-[[nodiscard]] core::MailFailureStatus translate_mail_status(mail::GuerrillaMailStatus status) noexcept
+struct NameParts
 {
-    switch(status)
+    std::string first_name;
+    std::string last_name;
+};
+
+[[nodiscard]] std::string trim_copy(std::string_view value)
+{
+    const auto first = value.find_first_not_of(" \t\r\n");
+    if(first == std::string_view::npos)
     {
-    case mail::GuerrillaMailStatus::Ok:
-        return core::MailFailureStatus::Ok;
-    case mail::GuerrillaMailStatus::Null:
-        return core::MailFailureStatus::Null;
-    case mail::GuerrillaMailStatus::InvalidArgument:
+        return {};
+    }
+
+    const auto last = value.find_last_not_of(" \t\r\n");
+    return std::string(value.substr(first, last - first + 1));
+}
+
+[[nodiscard]] std::optional<std::string> normalize_optional_string(
+    std::optional<std::string> value
+)
+{
+    if(!value || value->empty())
+    {
+        return std::nullopt;
+    }
+
+    return value;
+}
+
+[[nodiscard]] NameParts split_display_name(std::string_view display_name)
+{
+    const auto trimmed_name = trim_copy(display_name);
+    if(trimmed_name.empty())
+    {
+        throw std::invalid_argument("display_name must not be empty");
+    }
+
+    const auto separator = trimmed_name.find(' ');
+    if(separator == std::string::npos)
+    {
+        return NameParts{
+            .first_name = trimmed_name,
+            .last_name = {},
+        };
+    }
+
+    return NameParts{
+        .first_name = trimmed_name.substr(0, separator),
+        .last_name = trim_copy(trimmed_name.substr(separator + 1)),
+    };
+}
+
+[[nodiscard]] core::MailFailureStatus translate_mail_status(
+    guerrillamail::ErrorCode code
+) noexcept
+{
+    switch(code)
+    {
+    case guerrillamail::ErrorCode::invalid_argument:
         return core::MailFailureStatus::InvalidArgument;
-    case mail::GuerrillaMailStatus::Request:
+    case guerrillamail::ErrorCode::transport:
+    case guerrillamail::ErrorCode::http_status:
         return core::MailFailureStatus::Request;
-    case mail::GuerrillaMailStatus::ResponseParse:
-        return core::MailFailureStatus::ResponseParse;
-    case mail::GuerrillaMailStatus::TokenParse:
+    case guerrillamail::ErrorCode::token_parse:
         return core::MailFailureStatus::TokenParse;
-    case mail::GuerrillaMailStatus::Json:
+    case guerrillamail::ErrorCode::response_parse:
+        return core::MailFailureStatus::ResponseParse;
+    case guerrillamail::ErrorCode::json_parse:
         return core::MailFailureStatus::Json;
-    case mail::GuerrillaMailStatus::Internal:
+    case guerrillamail::ErrorCode::internal:
         return core::MailFailureStatus::Internal;
-    case mail::GuerrillaMailStatus::Unknown:
-        return core::MailFailureStatus::Unknown;
     }
 
     return core::MailFailureStatus::Unknown;
@@ -89,7 +142,7 @@ void validate_config(const core::AccountGeneratorConfig& config)
         throw std::invalid_argument("AccountGenerator requires a non-empty password");
     }
 
-    if(core::detail::trim_copy(config.display_name).empty())
+    if(trim_copy(config.display_name).empty())
     {
         throw std::invalid_argument("AccountGenerator requires a non-empty display_name");
     }
@@ -115,10 +168,10 @@ void validate_config(const core::AccountGeneratorConfig& config)
 )
 {
     validate_config(config);
-    config.display_name = core::detail::trim_copy(config.display_name);
-    config.proxy = core::detail::normalize_optional_string(std::move(config.proxy));
-    config.base_path = core::detail::normalize_optional_string(std::move(config.base_path));
-    config.user_agent = core::detail::normalize_optional_string(std::move(config.user_agent));
+    config.display_name = trim_copy(config.display_name);
+    config.proxy = normalize_optional_string(std::move(config.proxy));
+    config.base_path = normalize_optional_string(std::move(config.base_path));
+    config.user_agent = normalize_optional_string(std::move(config.user_agent));
     return config;
 }
 
@@ -132,10 +185,10 @@ decltype(auto) wrap_mail_operation(
     {
         return std::forward<Operation>(operation_callback)();
     }
-    catch(const mail::GuerrillaMailError& error)
+    catch(const guerrillamail::Error& error)
     {
         throw core::MailFailureError(
-            translate_mail_status(error.status()),
+            translate_mail_status(error.code()),
             "GuerrillaMail " + std::string(operation) + " failed: " + error.what()
         );
     }
@@ -170,7 +223,7 @@ decltype(auto) wrap_mega_operation(
 class EmailCleanupGuard
 {
 public:
-    explicit EmailCleanupGuard(mail::GuerrillaMailClient& mail_client) noexcept
+    explicit EmailCleanupGuard(guerrillamail::Client& mail_client) noexcept
         : mail_client_(mail_client)
     {
     }
@@ -197,129 +250,11 @@ public:
     }
 
 private:
-    mail::GuerrillaMailClient& mail_client_;
+    guerrillamail::Client& mail_client_;
     std::string email_;
 };
 
-[[nodiscard]] std::string extract_session_key(const mega_integration::RequestResult& result)
-{
-    if(result.request == nullptr)
-    {
-        throw core::MegaSignupError(
-            "MEGA create account finished without request data",
-            std::nullopt
-        );
-    }
-
-    const auto session_key = copy_nullable_string(result.request->getSessionKey());
-    if(session_key.empty())
-    {
-        throw core::MegaSignupError(
-            "MEGA create account finished without a session key",
-            std::nullopt
-        );
-    }
-
-    return session_key;
-}
-
-void validate_confirmed_email(
-    const mega_integration::RequestResult& result,
-    std::string_view expected_email
-)
-{
-    if(result.request == nullptr)
-    {
-        throw core::MegaSignupError(
-            "MEGA confirm account finished without request data",
-            std::nullopt
-        );
-    }
-
-    core::detail::validate_confirmed_email_value(
-        copy_nullable_string(result.request->getEmail()),
-        expected_email
-    );
-}
-
-} // namespace
-
-namespace core
-{
-
-namespace detail
-{
-
-std::string trim_copy(std::string_view value)
-{
-    const auto first = value.find_first_not_of(" \t\r\n");
-    if(first == std::string_view::npos)
-    {
-        return {};
-    }
-
-    const auto last = value.find_last_not_of(" \t\r\n");
-    return std::string(value.substr(first, last - first + 1));
-}
-
-std::optional<std::string> normalize_optional_string(std::optional<std::string> value)
-{
-    if(!value || value->empty())
-    {
-        return std::nullopt;
-    }
-
-    return value;
-}
-
-NameParts split_display_name(std::string_view display_name)
-{
-    const auto trimmed_name = trim_copy(display_name);
-    if(trimmed_name.empty())
-    {
-        throw std::invalid_argument("display_name must not be empty");
-    }
-
-    const auto separator = trimmed_name.find(' ');
-    if(separator == std::string::npos)
-    {
-        return NameParts{
-            .first_name = trimmed_name,
-            .last_name = {},
-        };
-    }
-
-    return NameParts{
-        .first_name = trimmed_name.substr(0, separator),
-        .last_name = trim_copy(trimmed_name.substr(separator + 1)),
-    };
-}
-
-std::string generate_random_alias(std::size_t length)
-{
-    if(length == 0)
-    {
-        throw std::invalid_argument("alias length must be greater than zero");
-    }
-
-    static constexpr std::string_view kAlphabet = "abcdefghijklmnopqrstuvwxyz0123456789";
-
-    std::random_device random_device;
-    std::mt19937_64 engine(random_device());
-    std::uniform_int_distribution<std::size_t> distribution(0, kAlphabet.size() - 1);
-
-    std::string alias;
-    alias.reserve(length);
-
-    for(std::size_t index = 0; index < length; ++index)
-    {
-        alias.push_back(kAlphabet[distribution(engine)]);
-    }
-
-    return alias;
-}
-
-bool is_probable_mega_message(const mail::MessageSummary& message)
+[[nodiscard]] bool is_probable_mega_message(const guerrillamail::Message& message)
 {
     const auto contains_case_insensitive = [](std::string_view haystack, std::string_view needle)
     {
@@ -340,7 +275,7 @@ bool is_probable_mega_message(const mail::MessageSummary& message)
         contains_case_insensitive(message.mail_subject, "mega");
 }
 
-std::optional<std::string> extract_confirmation_link(std::string_view body)
+[[nodiscard]] std::optional<std::string> extract_confirmation_link(std::string_view body)
 {
     static constexpr std::array kPrefixes{
         std::string_view{"https://mega.nz/#confirm"},
@@ -389,7 +324,7 @@ void validate_confirmed_email_value(
 {
     if(confirmed_email.empty())
     {
-        throw MegaSignupError(
+        throw core::MegaSignupError(
             "MEGA confirm account finished without a confirmed email",
             std::nullopt
         );
@@ -397,14 +332,101 @@ void validate_confirmed_email_value(
 
     if(confirmed_email != expected_email)
     {
-        throw MegaSignupError(
+        throw core::MegaSignupError(
             "MEGA confirmation returned a different email than the generated account",
             std::nullopt
         );
     }
 }
 
-} // namespace detail
+[[nodiscard]] guerrillamail::ClientOptions make_mail_client_options(
+    const core::AccountGeneratorConfig& config
+)
+{
+    guerrillamail::ClientOptions options;
+    options.proxy = config.proxy;
+    options.timeout = config.request_timeout;
+    options.verify_tls = !config.danger_accept_invalid_certs;
+    return options;
+}
+
+[[nodiscard]] guerrillamail::Client make_mail_client(const core::AccountGeneratorConfig& config)
+{
+    return wrap_mail_operation("initialize client", [&config]
+    {
+        return guerrillamail::Client::create(make_mail_client_options(config));
+    });
+}
+
+[[nodiscard]] std::string extract_session_key(const mega_integration::RequestResult& result)
+{
+    if(result.request == nullptr)
+    {
+        throw core::MegaSignupError(
+            "MEGA create account finished without request data",
+            std::nullopt
+        );
+    }
+
+    const auto session_key = copy_nullable_string(result.request->getSessionKey());
+    if(session_key.empty())
+    {
+        throw core::MegaSignupError(
+            "MEGA create account finished without a session key",
+            std::nullopt
+        );
+    }
+
+    return session_key;
+}
+
+void validate_confirmed_email(
+    const mega_integration::RequestResult& result,
+    std::string_view expected_email
+)
+{
+    if(result.request == nullptr)
+    {
+        throw core::MegaSignupError(
+            "MEGA confirm account finished without request data",
+            std::nullopt
+        );
+    }
+
+    validate_confirmed_email_value(
+        copy_nullable_string(result.request->getEmail()),
+        expected_email
+    );
+}
+
+} // namespace
+
+namespace core
+{
+
+std::string generate_random_token(std::size_t length)
+{
+    if(length == 0)
+    {
+        throw std::invalid_argument("random token length must be greater than zero");
+    }
+
+    static constexpr std::string_view kAlphabet = "abcdefghijklmnopqrstuvwxyz0123456789";
+
+    std::random_device random_device;
+    std::mt19937_64 engine(random_device());
+    std::uniform_int_distribution<std::size_t> distribution(0, kAlphabet.size() - 1);
+
+    std::string alias;
+    alias.reserve(length);
+
+    for(std::size_t index = 0; index < length; ++index)
+    {
+        alias.push_back(kAlphabet[distribution(engine)]);
+    }
+
+    return alias;
+}
 
 AccountGenerationError::AccountGenerationError(std::string message)
     : std::runtime_error(std::move(message))
@@ -453,7 +475,7 @@ struct AccountGenerator::Impl
 {
     explicit Impl(AccountGeneratorConfig config)
         : config_(validate_and_normalize_config(std::move(config)))
-        , mail_client_(make_mail_client_options(config_))
+        , mail_client_(make_mail_client(config_))
         , mega_client_(make_mega_client_options(config_))
     {
         if(config_.proxy)
@@ -467,7 +489,7 @@ struct AccountGenerator::Impl
 
     [[nodiscard]] GeneratedAccount generate()
     {
-        const auto alias = detail::generate_random_alias();
+        const auto alias = generate_random_token(12);
         const auto email = wrap_mail_operation("create_email", [this, &alias]
         {
             return mail_client_.create_email(alias);
@@ -476,7 +498,7 @@ struct AccountGenerator::Impl
         EmailCleanupGuard cleanup(mail_client_);
         cleanup.set_email(email);
 
-        const auto name_parts = detail::split_display_name(config_.display_name);
+        const auto name_parts = split_display_name(config_.display_name);
 
         const auto create_result = wrap_mega_operation("create account", [this, &email, &name_parts]
         {
@@ -509,18 +531,6 @@ struct AccountGenerator::Impl
     }
 
 private:
-    [[nodiscard]] static mail::ClientOptions make_mail_client_options(
-        const AccountGeneratorConfig& config
-    )
-    {
-        return mail::ClientOptions{
-            .proxy = config.proxy,
-            .timeout = config.request_timeout,
-            .user_agent = config.user_agent,
-            .danger_accept_invalid_certs = config.danger_accept_invalid_certs,
-        };
-    }
-
     [[nodiscard]] static mega_integration::ClientOptions make_mega_client_options(
         const AccountGeneratorConfig& config
     )
@@ -531,7 +541,6 @@ private:
             .user_agent = config.user_agent,
             .request_timeout = config.request_timeout,
             .worker_thread_count = config.worker_thread_count,
-            .client_type = config.mega_client_type,
         };
     }
 
@@ -556,12 +565,12 @@ private:
 
             const auto messages = wrap_mail_operation("list_messages", [this, email]
             {
-                return mail_client_.list_messages(email);
+                return mail_client_.get_messages(email);
             });
 
             for(const auto& message : messages)
             {
-                if(!detail::is_probable_mega_message(message))
+                if(!is_probable_mega_message(message))
                 {
                     continue;
                 }
@@ -573,7 +582,7 @@ private:
                     return mail_client_.fetch_email(email, message.mail_id);
                 });
 
-                const auto confirmation_link = detail::extract_confirmation_link(details.mail_body);
+                const auto confirmation_link = extract_confirmation_link(details.mail_body);
                 if(confirmation_link)
                 {
                     return *confirmation_link;
@@ -585,7 +594,7 @@ private:
     }
 
     AccountGeneratorConfig config_;
-    mail::GuerrillaMailClient mail_client_;
+    guerrillamail::Client mail_client_;
     mega_integration::MegaApiClient mega_client_;
 };
 

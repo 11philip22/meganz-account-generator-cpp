@@ -9,7 +9,7 @@
 #include <string_view>
 #include <utility>
 
-#include "cli/random_app_key.hpp"
+#include "core/account_generator.hpp"
 
 namespace
 {
@@ -153,7 +153,7 @@ void print_help(std::ostream& stream)
 )
 {
     return meganz_account_generator::AccountGeneratorConfig{
-        .app_key = cli::generate_random_app_key(),
+        .app_key = core::generate_random_token(8),
         .password = std::move(*options.password),
         .display_name = std::move(options.display_name),
         .proxy = std::move(options.proxy),

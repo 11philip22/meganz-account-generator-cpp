@@ -21,7 +21,6 @@ struct ClientOptions
     std::optional<std::string> user_agent;
     std::chrono::milliseconds request_timeout{std::chrono::seconds{30}};
     unsigned worker_thread_count{1};
-    int client_type{mega::MegaApi::CLIENT_TYPE_DEFAULT};
 };
 
 class MegaApiClient
@@ -35,10 +34,7 @@ public:
     MegaApiClient(MegaApiClient&&) noexcept = default;
     MegaApiClient& operator=(MegaApiClient&&) noexcept = default;
 
-    void set_log_level(int level);
-
     [[nodiscard]] RequestResult set_proxy(std::optional<std::string_view> proxy_url);
-    [[nodiscard]] RequestResult login(std::string_view email, std::string_view password);
     [[nodiscard]] RequestResult create_account(
         std::string_view email,
         std::string_view password,
@@ -46,11 +42,6 @@ public:
         std::string_view last_name
     );
     [[nodiscard]] RequestResult resume_create_account(std::string_view sid);
-    [[nodiscard]] RequestResult resend_signup_link(
-        std::string_view email,
-        std::string_view name
-    );
-    [[nodiscard]] RequestResult query_signup_link(std::string_view link);
     [[nodiscard]] RequestResult confirm_account(std::string_view link);
 
 private:
